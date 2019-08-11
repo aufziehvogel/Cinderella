@@ -34,6 +34,16 @@ Solutions that might be interesting, but there might also be problems:
 
 So what is this project's goal?
 
+### Techical Requirements
+
+- Installation of the main program must be possible without docker
+  (and this will be the main approach in all docs)
+- There must be a build executor/agent that runs without docker (other agents
+  that spawn docker containers might be implemented, because there are some
+  advantages, but also some disadvantages)
+
+### Functional Requirements
+
 - Perform CI and CD according to build steps from a config file
 - Status Reporting:
   - If possible: no web GUI, alternatively: static HTML files with current
@@ -46,6 +56,18 @@ So what is this project's goal?
 - If possible: Should play nicely with ansible, because I deploy most projects
   with ansible (had some trouble with Gitlab there, I think because of the
   docker setup)
+- Should support any programming language, not just a list of maintained
+  languages (and if there is a new one adjustments to the code have to be made)
+
+### Non-functional requirements
+
+- low memory and CPU footprint
+- easy installation without docker (ideally: copy one binary, set path
+  to git repos, run it, done)
+
+### Non-Targets
+
+- solution does not have to be scalable, single-server setup is fine
 
 
 ## Use Cases
