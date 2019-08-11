@@ -10,7 +10,11 @@ Problems with existing solutions:
 - Jenkins: Not very lightweight and in my opinion does not "feel" nice in usage
   (i.e. no clear approach because very plugin based, security configuration can
   be in multiple locations in the UI)
-- Drone: Does not want to support builds [without Docker][drone-docker]
+- Drone: Does not want to support builds [without Docker][drone-docker] (and
+  they do not have install instructions for the main process outside of Docker
+  either -> this setup lead to some difficulties for me with my Gitlab
+  setup, because then also a root-executor will not be on the actual server
+  anymore)
 - TeamCity: Seems to require Tomcat (i.e. includes Java UI stuff), installation
   instructions (for agents) look complex on first sight
 
