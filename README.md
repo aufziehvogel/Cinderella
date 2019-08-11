@@ -55,4 +55,11 @@ Project Development (if it takes place at all) will be according to use cases:
 4. Deploy a project with an ansible-playbook
 
 
+## References
+
+- [List of CI/CD tools][cicd]
+- [reddit discussion on lightweight self-hosted CD][reddit-cd]
+
 [drone-docker]: https://github.com/drone/drone/issues/2378
+[cicd]: https://github.com/ligurio/awesome-ci
+[reddit-cd]: https://www.reddit.com/r/devops/comments/a4tyju/lightweight_self_hosted_cd/
