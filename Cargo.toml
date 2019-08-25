@@ -1,0 +1,9 @@
+[package]
+name = "cinderella"
+version = "0.1.0"
+authors = ["Stefan Koch <programming@stefan-koch.name>"]
+edition = "2018"
+
+[dependencies]
+git2 = "0.10.0"
+rand = "0.7.0"
