@@ -6,7 +6,7 @@
 | --- | --- |
 | **Description** | Lightweight self-hosted CI/CD platform without GUI and without a requirement for Docker |
 | **Target Audience** | Developers who work with raw git repositories or lightweight web solutions around git |
-| **Language** | Go |
+| **Language** | Go or Rust |
 | **Expected Effort** | >100 hours |
 | **Intermediate Successes** | CD-only solution for static site generators, without CI pipelines |
 
