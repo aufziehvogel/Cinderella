@@ -12,6 +12,8 @@ pub fn execute_pipeline(pipeline: &pipeline::Pipeline) {
     println!("Executing Pipeline \"{}\"", pipeline.name);
 
     for cmd in &pipeline.commands {
+        println!("Step: {}", cmd);
+
         // TODO: Successful argument parsing needs a lot more details,
         // e.g. for quoted arguments like myprogram "argument 1"
         // but for a first shot this works
