@@ -5,7 +5,7 @@ use std::path::{Path, PathBuf};
 use git2::Repository;
 
 pub trait CodeSource {
-    fn fetch(&self, target: &Path) -> Result<WorkDir, Box<Error>>;
+    fn fetch(&self, target: &Path) -> Result<WorkDir, Box<dyn Error>>;
 }
 
 pub struct Git {
@@ -17,7 +17,7 @@ pub struct WorkDir {
 }
 
 impl CodeSource for Git {
-    fn fetch(&self, target: &Path) -> Result<WorkDir, Box<Error>> {
+    fn fetch(&self, target: &Path) -> Result<WorkDir, Box<dyn Error>> {
         let repo = Repository::clone(&self.src, target)?;
         let path = repo.workdir()
             .expect("Newly cloned repo is expected to have a workdir");
