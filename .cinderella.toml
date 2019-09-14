@@ -6,5 +6,5 @@ commands = [
 [build-release]
 commands = [
     "cargo build --release",
-    # copy/upload the file somewhere
+    "cp target/release/cinderella /opt/cinderella/",
 ]
