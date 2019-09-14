@@ -1,3 +1,4 @@
+use std::env;
 use std::path::PathBuf;
 
 use rand::Rng;
@@ -28,6 +29,10 @@ pub fn run(repo_url: &str) {
     let workdir = repo.fetch(&tempdir).expect("could not clone repo");
 
     println!("Workdir is at {:?}", workdir.path);
+
+    // Switch to the exported work dir so that all commands
+    // are executed there
+    assert!(env::set_current_dir(&workdir.path).is_ok());
 
     let mut cinderella_file = workdir.path.clone();
     cinderella_file.push(".cinderella.toml");
