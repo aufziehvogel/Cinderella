@@ -7,3 +7,4 @@ edition = "2018"
 [dependencies]
 git2 = "0.10.0"
 rand = "0.7.0"
+toml = { version = "0.5", features = ["preserve_order"] }
