@@ -1,0 +1,12 @@
+#!/bin/bash
+# Execute Cinderella continuous integration with the current user.
+# Sources the user's .bash_profile. This is e.g. required for rust toolchains
+# that were installed with rustup.
+
+echo "Executing Cinderella"
+user=$(whoami)
+echo "Current user: $user"
+
+source /home/$user/.bash_profile
+
+nohup /home/brati/cinderella /home/brati/git/cinderella.git &>/dev/null &
