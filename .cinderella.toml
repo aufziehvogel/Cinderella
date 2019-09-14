@@ -1,0 +1,10 @@
+[test]
+commands = [
+    "cargo test",
+]
+
+[build-release]
+commands = [
+    "cargo build --release",
+    # copy/upload the file somewhere
+]
