@@ -9,4 +9,4 @@ echo "Current user: $user"
 
 source /home/$user/.bash_profile
 
-nohup /home/brati/cinderella /home/brati/git/cinderella.git &>/dev/null &
+nohup /opt/cinderella/cinderella "$PWD" &>/dev/null &
