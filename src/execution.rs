@@ -6,7 +6,17 @@ use crate::pipeline;
 pub fn execute(pipelines: &Vec<pipeline::Pipeline>,
                variables: &HashMap<String, String>) {
     for pipeline in pipelines {
-        execute_pipeline(pipeline, &variables);
+        let execute = match &pipeline.when {
+            Some(when) => {
+                let test = replace_variables(&when, &variables);
+                execute_test(&test)
+            }
+            None => true,
+        };
+
+        if execute {
+            execute_pipeline(pipeline, &variables);
+        }
     }
 }
 
@@ -20,11 +30,7 @@ pub fn execute_pipeline(pipeline: &pipeline::Pipeline,
         let cmd = replace_variables(&cmd, &variables);
         // TODO: Raise error if some variables remain unsubstituted?
 
-        // TODO: Successful argument parsing needs a lot more details,
-        // e.g. for quoted arguments like myprogram "argument 1"
-        // but for a first shot this works
-        let parts: Vec<&str> = cmd.split(" ").collect();
-
+        let parts = split_command(&cmd);
         let status = Command::new(parts[0])
             .args(&parts[1..])
             .status()
@@ -32,6 +38,25 @@ pub fn execute_pipeline(pipeline: &pipeline::Pipeline,
 
         assert!(status.success());
     }
+}
+
+fn split_command<'a>(command: &'a str) -> Vec<&'a str> {
+    // TODO: Successful argument parsing needs a lot more details,
+    // e.g. for quoted arguments like myprogram "argument 1"
+    // but for a first shot this works
+    let parts: Vec<&str> = command.split(" ").collect();
+    parts
+}
+
+fn execute_test(test: &str) -> bool {
+    let args = split_command(&test);
+
+    let status = Command::new("test")
+        .args(&args)
+        .status()
+        .expect(&format!("failed to run test {}", test));
+
+    status.success()
 }
 
 fn replace_variables(command: &str, variables: &HashMap<String, String>)

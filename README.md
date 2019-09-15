@@ -46,3 +46,18 @@ substituted with actual values from the build context. Currently supported
 variables are:
 
 - `{{ branch }}`: The name of the branch that is built
+
+You can conditionally execute a pipeline with the `when` option, for example
+to run a pipeline only for specific branches:
+
+```toml
+[build-release]
+commands = [
+    "cargo build --release",
+]
+when = "'{{ branch }}' == 'master'"
+```
+
+The condition will be executed with the Linux `test` command. Please be aware
+that this behaviour will likely change in the future and another test
+execution engine might be used.

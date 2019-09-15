@@ -6,6 +6,7 @@ use toml::Value;
 pub struct Pipeline {
     pub name: String,
     pub commands: Vec<String>,
+    pub when: Option<String>,
 }
 
 pub fn load_pipeline(path: &PathBuf) -> Option<Vec<Pipeline>> {
@@ -14,17 +15,18 @@ pub fn load_pipeline(path: &PathBuf) -> Option<Vec<Pipeline>> {
 
         let res: Vec<Pipeline> = data.as_table().unwrap().iter()
             .filter_map(|(key, value)| {
-                if value.is_table() {
-                    // TODO: Better handle unwrap here and return error when
-                    // file is invalid
-                    Some(Pipeline {
-                        name: key.to_string(),
-                        commands: value["commands"].as_array().unwrap().iter()
-                            .map(|cmd| String::from(cmd.as_str().unwrap()))
-                            .collect(),
-                    })
-                } else {
-                    None
+                match value {
+                    Value::Table(table) => {
+                        // TODO: Better error handling needed
+                        Some(Pipeline {
+                            name: key.to_string(),
+                            commands: value["commands"].as_array().unwrap().iter()
+                                .map(|cmd| String::from(cmd.as_str().unwrap()))
+                                .collect(),
+                            when: table.get("when").map(|v| String::from(v.as_str().unwrap())),
+                        })
+                    },
+                    _ => None
                 }
             }).collect();
 
