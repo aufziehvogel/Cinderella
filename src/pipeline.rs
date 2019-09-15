@@ -1,4 +1,5 @@
 use std::fs;
+use std::path::PathBuf;
 use toml::Value;
 
 #[derive(Debug)]
@@ -7,7 +8,7 @@ pub struct Pipeline {
     pub commands: Vec<String>,
 }
 
-pub fn load_pipeline(path: &str) -> Option<Vec<Pipeline>> {
+pub fn load_pipeline(path: &PathBuf) -> Option<Vec<Pipeline>> {
     if let Ok(contents) = fs::read_to_string(path) {
         let data = contents.parse::<Value>().unwrap();
 

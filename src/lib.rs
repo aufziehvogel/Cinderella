@@ -9,35 +9,55 @@ mod pipeline;
 mod execution;
 
 use crate::vcs::CodeSource;
+use crate::vcs::WorkingCopy;
 
-fn random_dir() -> String {
-    rand::thread_rng()
-        .sample_iter(&Alphanumeric)
-        .take(10)
-        .collect::<String>()
+pub struct RepoPointer {
+    pub repo_url: String,
+    pub branch: Option<String>,
 }
 
-pub fn run(repo_url: &str) {
-    let repo = vcs::Git {
-        src: String::from(repo_url),
+fn random_dir(base_path: &str) -> PathBuf {
+    let mut tempdir = PathBuf::from(base_path);
+
+    let random_dirname = rand::thread_rng()
+        .sample_iter(&Alphanumeric)
+        .take(10)
+        .collect::<String>();
+    tempdir.push(random_dirname);
+
+    tempdir
+}
+
+fn cinderella_file(folder: &PathBuf) -> PathBuf {
+    let mut cinderella_file = folder.clone();
+    cinderella_file.push(".cinderella.toml");
+
+    cinderella_file
+}
+
+pub fn run(repo_ptr: &RepoPointer) {
+    let repo = vcs::GitSource {
+        src: String::from(&repo_ptr.repo_url),
     };
 
     // generate a temp unique work dir
-    let mut tempdir = PathBuf::from("/tmp/cinderella");
-    tempdir.push(random_dir());
-
+    let tempdir = random_dir("/tmp/cinderella");
     let workdir = repo.fetch(&tempdir).expect("could not clone repo");
 
     println!("Workdir is at {:?}", workdir.path);
+
+    // checkout the branch if a branch was provided
+    if let Some(branch) = &repo_ptr.branch {
+        println!("Switching to branch {}", branch);
+        workdir.checkout_branch(&branch);
+    }
 
     // Switch to the exported work dir so that all commands
     // are executed there
     assert!(env::set_current_dir(&workdir.path).is_ok());
 
-    let mut cinderella_file = workdir.path.clone();
-    cinderella_file.push(".cinderella.toml");
-
-    if let Some(pipelines) = pipeline::load_pipeline(".cinderella.toml") {
+    let cinderella_file = cinderella_file(&workdir.path);
+    if let Some(pipelines) = pipeline::load_pipeline(&cinderella_file) {
         execution::execute(&pipelines);
     } else {
         println!("No Cinderella configuration found");
