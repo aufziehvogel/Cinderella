@@ -9,3 +9,6 @@ getopts = "0.2"
 git2 = { version = "0.10.0", features = ["vendored-openssl"] }
 rand = "0.7.0"
 toml = { version = "0.5", features = ["preserve_order"] }
+
+[dev-dependencies]
+tempfile = "3"
