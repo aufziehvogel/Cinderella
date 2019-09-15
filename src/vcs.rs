@@ -50,7 +50,7 @@ impl GitWorkingCopy {
         self.repo.checkout_tree(
             &obj,
             None
-        );
+        ).expect("Checkout of tree failed");
     }
 }
 
