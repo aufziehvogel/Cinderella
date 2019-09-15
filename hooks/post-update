@@ -9,4 +9,7 @@ echo "Current user: $user"
 
 source /home/$user/.bash_profile
 
-nohup /opt/cinderella/cinderella "$PWD" &>/dev/null &
+branch=$(basename "$1")
+echo "Will build branch $branch"
+
+nohup /opt/cinderella/cinderella "$PWD" --branch "$branch" &>/dev/null &
