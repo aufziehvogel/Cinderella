@@ -7,6 +7,7 @@ commands = [
 commands = [
     "cargo build --release",
     "cp target/release/cinderella /opt/cinderella/.cinderella-{{ branch }}",
-    "rm /opt/cinderella/cinderella-{{ branch }}",
+    # use -f on deletion to avoid errors if file does not exist
+    "rm -f /opt/cinderella/cinderella-{{ branch }}",
     "mv /opt/cinderella/.cinderella-{{ branch }} /opt/cinderella/cinderella-{{ branch }}",
 ]
