@@ -1,3 +1,4 @@
+use std::collections::HashMap;
 use std::env;
 use std::path::PathBuf;
 
@@ -46,10 +47,15 @@ pub fn run(repo_ptr: &RepoPointer) {
 
     println!("Workdir is at {:?}", workdir.path);
 
+    // setup variables for pipelines
+    let mut variables = HashMap::new();
+
     // checkout the branch if a branch was provided
     if let Some(branch) = &repo_ptr.branch {
         println!("Switching to branch {}", branch);
         workdir.checkout_branch(&branch);
+
+        variables.insert("branch".to_string(), branch.to_string());
     }
 
     // Switch to the exported work dir so that all commands
@@ -58,7 +64,7 @@ pub fn run(repo_ptr: &RepoPointer) {
 
     let cinderella_file = cinderella_file(&workdir.path);
     if let Some(pipelines) = pipeline::load_pipeline(&cinderella_file) {
-        execution::execute(&pipelines);
+        execution::execute(&pipelines, &variables);
     } else {
         println!("No Cinderella configuration found");
     }

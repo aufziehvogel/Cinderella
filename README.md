@@ -40,3 +40,9 @@ commands = [
 Pipelines are executed in the order in which they are defined. For the
 given configuration file it is ensured that first `test` is being executed
 followed by `build-release`.
+
+You can use variables in your build commands. These variables will get
+substituted with actual values from the build context. Currently supported
+variables are:
+
+- `{{ branch }}`: The name of the branch that is built
