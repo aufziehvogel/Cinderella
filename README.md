@@ -6,6 +6,7 @@ It is designed for people who do not want to work with big solutions like
 Gitlab or Jenkins and probably also work with standard *bare* git repositories
 (instead of Gitlab, gitea or similar).
 
+
 Usage
 -----
 
@@ -17,6 +18,14 @@ the CI configuration file and if available execute the build steps.
 There is a sample hook in `hooks/post-update` which you can use in your remote
 repository to execute Cinderella automatically each time you push to your
 repository.
+
+You can also manually execute Cinderella. To do so pass it the path to your
+git repository and optionally the name of the branch you want to build:
+
+```bash
+cinderella https://github.com/aufziehvogel/Cinderella.git --branch development
+```
+
 
 Configuration Format
 --------------------
