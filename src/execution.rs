@@ -1,10 +1,14 @@
 use std::collections::HashMap;
 use std::process::Command;
+use std::io::Write;
 
 use crate::pipeline;
 
-pub fn execute(pipelines: &Vec<pipeline::Pipeline>,
-               variables: &HashMap<String, String>) {
+pub fn execute<W: Write>(
+    pipelines: &Vec<pipeline::Pipeline>,
+    variables: &HashMap<String, String>,
+    stdout: &mut W)
+{
     for pipeline in pipelines {
         let execute = match &pipeline.when {
             Some(when) => {
@@ -15,28 +19,32 @@ pub fn execute(pipelines: &Vec<pipeline::Pipeline>,
         };
 
         if execute {
-            execute_pipeline(pipeline, &variables);
+            execute_pipeline(pipeline, &variables, stdout);
         }
     }
 }
 
-pub fn execute_pipeline(pipeline: &pipeline::Pipeline,
-                        variables: &HashMap<String, String>) {
-    println!("Executing Pipeline \"{}\"", pipeline.name);
+pub fn execute_pipeline<W: Write>(
+    pipeline: &pipeline::Pipeline,
+    variables: &HashMap<String, String>,
+    stdout: &mut W)
+{
+    writeln!(stdout, "Executing pipeline \"{}\"\n", pipeline.name).unwrap();
 
     for cmd in &pipeline.commands {
-        println!("Step: {}", cmd);
+        writeln!(stdout, "Step: {}", cmd).unwrap();
 
         let cmd = replace_variables(&cmd, &variables);
         // TODO: Raise error if some variables remain unsubstituted?
 
         let parts = split_command(&cmd);
-        let status = Command::new(parts[0])
+        let output = Command::new(parts[0])
             .args(&parts[1..])
-            .status()
+            .output()
             .expect(&format!("failed to run {}", cmd));
 
-        assert!(status.success());
+        stdout.write_all(&output.stdout).unwrap();
+        assert!(output.status.success());
     }
 }
 
@@ -71,4 +79,30 @@ fn replace_variables(command: &str, variables: &HashMap<String, String>)
     }
 
     res
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use std::collections::HashMap;
+    use crate::pipeline::Pipeline;
+
+    #[test]
+    fn test_execute_pipeline() {
+        let pipeline = Pipeline {
+            name: String::from("my-test"),
+            commands: vec!["echo 'this is my test'".to_string()],
+            when: None,
+        };
+        let variables = HashMap::new();
+
+        // Dummy stdout
+        let mut stdout = Vec::new();
+        execute_pipeline(&pipeline, &variables, &mut stdout);
+
+        let result = String::from_utf8(stdout.iter().map(|&c| c as u8).collect()).unwrap();
+
+        assert!(result.contains("Executing pipeline \"my-test\""));
+        assert!(result.contains("this is my test"));
+    }
 }

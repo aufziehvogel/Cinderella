@@ -1,5 +1,6 @@
 use std::collections::HashMap;
 use std::env;
+use std::io;
 use std::path::PathBuf;
 
 use rand::Rng;
@@ -64,7 +65,7 @@ pub fn run(repo_ptr: &RepoPointer) {
 
     let cinderella_file = cinderella_file(&workdir.path);
     if let Some(pipelines) = pipeline::load_pipeline(&cinderella_file) {
-        execution::execute(&pipelines, &variables);
+        execution::execute(&pipelines, &variables, &mut io::stdout());
     } else {
         println!("No Cinderella configuration found");
     }
