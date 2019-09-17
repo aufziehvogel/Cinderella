@@ -74,4 +74,5 @@ when = "branch == \"master\""
 The condition will be executed with the Rust library
 [evalexpr](https://docs.rs/evalexpr/5.0.5/evalexpr/index.html). Unlike in
 the commands, variables in the `when` conditions are used without
-braces.
+braces. Be aware that this syntax will change in the future and the syntax
+for variables in commands and conditions will be the same.
