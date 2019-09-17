@@ -24,7 +24,7 @@ pub fn execute<W: Write>(
     }
 }
 
-pub fn execute_pipeline<W: Write>(
+fn execute_pipeline<W: Write>(
     pipeline: &pipeline::Pipeline,
     variables: &HashMap<String, String>,
     stdout: &mut W)
@@ -87,6 +87,13 @@ mod tests {
     use std::collections::HashMap;
     use crate::pipeline::Pipeline;
 
+    fn execute_stringout(pipeline: Pipeline,
+                         variables: HashMap<String, String>) -> String {
+        let mut stdout = Vec::new();
+        execute(&vec![pipeline], &variables, &mut stdout);
+        String::from_utf8(stdout.iter().map(|&c| c as u8).collect()).unwrap()
+    }
+
     #[test]
     fn test_execute_pipeline() {
         let pipeline = Pipeline {
@@ -96,13 +103,40 @@ mod tests {
         };
         let variables = HashMap::new();
 
-        // Dummy stdout
-        let mut stdout = Vec::new();
-        execute_pipeline(&pipeline, &variables, &mut stdout);
-
-        let result = String::from_utf8(stdout.iter().map(|&c| c as u8).collect()).unwrap();
+        let result = execute_stringout(pipeline, variables);
 
         assert!(result.contains("Executing pipeline \"my-test\""));
         assert!(result.contains("this is my test"));
+    }
+
+    #[test]
+    fn test_pipeline_with_variables() {
+        let pipeline = Pipeline {
+            name: String::from("my-test"),
+            commands: vec!["echo '{{ myvar }}'".to_string()],
+            when: None,
+        };
+        let mut variables = HashMap::new();
+        variables.insert(String::from("myvar"), String::from("some value"));
+
+        let result = execute_stringout(pipeline, variables);
+
+        assert!(result.contains("some value"));
+    }
+
+    #[test]
+    fn test_conditional_pipeline() {
+        let pipeline = Pipeline {
+            name: String::from("my-test"),
+            commands: vec!["echo 'Building non-master'".to_string()],
+            when: Some(String::from("\"{{ branch }}\" != \"master\"")),
+        };
+        let mut variables = HashMap::new();
+        variables.insert(String::from("branch"), String::from("master"));
+
+        let result = execute_stringout(pipeline, variables);
+
+        println!("{}", result);
+        assert!(!result.contains("non-master"));
     }
 }
