@@ -2,6 +2,8 @@ use std::collections::HashMap;
 use std::process::Command;
 use std::io::Write;
 
+use evalexpr::{self, Context, HashMapContext, Value};
+
 use crate::pipeline;
 
 pub fn execute<W: Write>(
@@ -12,8 +14,7 @@ pub fn execute<W: Write>(
     for pipeline in pipelines {
         let execute = match &pipeline.when {
             Some(when) => {
-                let test = replace_variables(&when, &variables);
-                execute_test(&test)
+                execute_test(&when, &variables)
             }
             None => true,
         };
@@ -56,15 +57,18 @@ fn split_command<'a>(command: &'a str) -> Vec<&'a str> {
     parts
 }
 
-fn execute_test(test: &str) -> bool {
-    let args = split_command(&test);
+fn execute_test(test: &str, variables: &HashMap<String, String>) -> bool {
+    let mut context = HashMapContext::new();
 
-    let status = Command::new("test")
-        .args(&args)
-        .status()
-        .expect(&format!("failed to run test {}", test));
+    for (key, value) in variables {
+        context.set_value(key.to_string(), Value::String(value.clone()))
+            .unwrap();
+    }
 
-    status.success()
+    match evalexpr::eval_boolean_with_context(test, &context) {
+        Ok(true) => true,
+        _ => false,
+    }
 }
 
 fn replace_variables(command: &str, variables: &HashMap<String, String>)
@@ -125,11 +129,11 @@ mod tests {
     }
 
     #[test]
-    fn test_conditional_pipeline() {
+    fn test_conditional_pipeline_false() {
         let pipeline = Pipeline {
             name: String::from("my-test"),
             commands: vec!["echo 'Building non-master'".to_string()],
-            when: Some(String::from("\"{{ branch }}\" != \"master\"")),
+            when: Some(String::from("branch != \"master\"")),
         };
         let mut variables = HashMap::new();
         variables.insert(String::from("branch"), String::from("master"));
@@ -138,5 +142,21 @@ mod tests {
 
         println!("{}", result);
         assert!(!result.contains("non-master"));
+    }
+
+    #[test]
+    fn test_conditional_pipeline_true() {
+        let pipeline = Pipeline {
+            name: String::from("my-test"),
+            commands: vec!["echo 'Building master'".to_string()],
+            when: Some(String::from("branch == \"master\"")),
+        };
+        let mut variables = HashMap::new();
+        variables.insert(String::from("branch"), String::from("master"));
+
+        let result = execute_stringout(pipeline, variables);
+
+        println!("{}", result);
+        assert!(result.contains("Building master"));
     }
 }

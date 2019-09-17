@@ -68,9 +68,10 @@ to run a pipeline only for specific branches:
 commands = [
     "cargo build --release",
 ]
-when = "'{{ branch }}' == 'master'"
+when = "branch == \"master\""
 ```
 
-The condition will be executed with the Linux `test` command. Please be aware
-that this behaviour will likely change in the future and another test
-execution engine might be used.
+The condition will be executed with the Rust library
+[evalexpr](https://docs.rs/evalexpr/5.0.5/evalexpr/index.html). Unlike in
+the commands, variables in the `when` conditions are used without
+braces.

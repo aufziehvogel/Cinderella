@@ -39,7 +39,7 @@ fn cinderella_file(folder: &PathBuf) -> PathBuf {
 
 pub fn run(repo_ptr: &RepoPointer) {
     let repo = vcs::GitSource {
-        src: String::from(&repo_ptr.repo_url),
+        src: repo_ptr.repo_url.clone(),
     };
 
     // generate a temp unique work dir

@@ -11,4 +11,4 @@ commands = [
     "rm -f /opt/cinderella/cinderella-{{ branch }}",
     "mv /opt/cinderella/.cinderella-{{ branch }} /opt/cinderella/cinderella-{{ branch }}",
 ]
-when = "'{{ branch }}' == 'master'"
+when = "branch == \"master\""
