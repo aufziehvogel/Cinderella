@@ -2,7 +2,7 @@ use std::collections::HashMap;
 use std::process::Command;
 use std::io::Write;
 
-use evalexpr::{self, Context, HashMapContext, Value};
+use evalexpr;
 
 use crate::pipeline;
 
@@ -58,14 +58,12 @@ fn split_command<'a>(command: &'a str) -> Vec<&'a str> {
 }
 
 fn execute_test(test: &str, variables: &HashMap<String, String>) -> bool {
-    let mut context = HashMapContext::new();
+    // not possible to use evalexpr Context, because evalexpr only handles
+    // standard variable names without special characters (percentage
+    // symbol cannot be used)
+    let test = replace_variables(test, variables);
 
-    for (key, value) in variables {
-        context.set_value(key.to_string(), Value::String(value.clone()))
-            .unwrap();
-    }
-
-    match evalexpr::eval_boolean_with_context(test, &context) {
+    match evalexpr::eval_boolean(&test) {
         Ok(true) => true,
         _ => false,
     }
@@ -77,8 +75,8 @@ fn replace_variables(command: &str, variables: &HashMap<String, String>)
     let mut res = String::from(command);
 
     for (original, replacement) in variables {
-        // replace "{{ varname }}" with replacement value
-        let varname = format!("{{{{ {} }}}}", original);
+        // replace "%VARNAME" with replacement value
+        let varname = format!("%{}", original.to_uppercase());
         res = res.replace(&varname, replacement);
     }
 
@@ -117,7 +115,7 @@ mod tests {
     fn test_pipeline_with_variables() {
         let pipeline = Pipeline {
             name: String::from("my-test"),
-            commands: vec!["echo '{{ myvar }}'".to_string()],
+            commands: vec!["echo '%MYVAR'".to_string()],
             when: None,
         };
         let mut variables = HashMap::new();
@@ -133,7 +131,7 @@ mod tests {
         let pipeline = Pipeline {
             name: String::from("my-test"),
             commands: vec!["echo 'Building non-master'".to_string()],
-            when: Some(String::from("branch != \"master\"")),
+            when: Some(String::from("\"%BRANCH\" != \"master\"")),
         };
         let mut variables = HashMap::new();
         variables.insert(String::from("branch"), String::from("master"));
@@ -149,7 +147,7 @@ mod tests {
         let pipeline = Pipeline {
             name: String::from("my-test"),
             commands: vec!["echo 'Building master'".to_string()],
-            when: Some(String::from("branch == \"master\"")),
+            when: Some(String::from("\"%BRANCH\" == \"master\"")),
         };
         let mut variables = HashMap::new();
         variables.insert(String::from("branch"), String::from("master"));

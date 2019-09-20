@@ -52,11 +52,12 @@ followed by `build-release`.
 
 ### Variables
 
-You can use variables in your build commands. These variables will get
-substituted with actual values from the build context. Currently supported
-variables are:
+You can use variables in the configuration file. All variables are denoted
+with a percentage symbol (`%`) and will be replaced before the commands
+are being sent to the shell.
+Currently supported variables are:
 
-- `{{ branch }}`: The name of the branch that is built
+- `%BRANCH`: The name of the branch that is built
 
 ### Conditions
 
@@ -68,11 +69,8 @@ to run a pipeline only for specific branches:
 commands = [
     "cargo build --release",
 ]
-when = "branch == \"master\""
+when = "\"%BRANCH\" == \"master\""
 ```
 
 The condition will be executed with the Rust library
-[evalexpr](https://docs.rs/evalexpr/5.0.5/evalexpr/index.html). Unlike in
-the commands, variables in the `when` conditions are used without
-braces. Be aware that this syntax will change in the future and the syntax
-for variables in commands and conditions will be the same.
+[evalexpr](https://docs.rs/evalexpr/5.0.5/evalexpr/index.html).
