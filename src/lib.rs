@@ -6,6 +6,7 @@ use std::path::PathBuf;
 use rand::Rng;
 use rand::distributions::Alphanumeric;
 
+mod config;
 mod vcs;
 mod pipeline;
 mod execution;
@@ -38,6 +39,8 @@ fn cinderella_file(folder: &PathBuf) -> PathBuf {
 }
 
 pub fn run(repo_ptr: &RepoPointer) {
+    let _config = config::read_config();
+
     let repo = vcs::GitSource {
         src: repo_ptr.repo_url.clone(),
     };
@@ -65,6 +68,8 @@ pub fn run(repo_ptr: &RepoPointer) {
 
     let cinderella_file = cinderella_file(&workdir.path);
     if let Some(pipelines) = pipeline::load_pipeline(&cinderella_file) {
+        // TODO: Check if execution was successful. If not and if email is
+        // configured, send a mail
         execution::execute(&pipelines, &variables, &mut io::stdout());
     } else {
         println!("No Cinderella configuration found");
