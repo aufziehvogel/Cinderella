@@ -1,5 +1,5 @@
 #!/bin/bash
-# Execute Cinderella continuous integration with the current user.
+# Execute Cinderella continuous integration with the user performing the push.
 # Sources the user's .bash_profile. This is e.g. required for rust toolchains
 # that were installed with rustup.
 
