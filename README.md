@@ -27,10 +27,10 @@ cinderella https://github.com/aufziehvogel/Cinderella.git --branch development
 ```
 
 
-Configuration Format
---------------------
+CI Configuration Format
+-----------------------
 
-The CI configuration file is a TOML file with one table per build pipeline.
+The *CI configuration file* is a TOML file with one table per build pipeline.
 Common build pipelines are `test` or `build`. E.g. the following is a valid
 configuration file executing a `test` phase and a `build-release` phase.
 
@@ -74,3 +74,26 @@ when = "\"%BRANCH\" == \"master\""
 
 The condition will be executed with the Rust library
 [evalexpr](https://docs.rs/evalexpr/5.0.5/evalexpr/index.html).
+
+
+E-Mail Notification
+-------------------
+
+You can send e-mail notifications on build failures. For this, create a file
+called `config.toml` in the same directory as your Cinderella executable with
+the following content (this file is called *Cinderella configuration file*
+to distinguish it from the CI configuration file):
+
+```toml
+[email]
+to = "recipient@example.com"
+from = "noreply@example.com"
+server = "example.com"
+user = "example"
+password = "password"
+```
+
+If Cinderella finds a `config.toml` file with a table `email` it will enable
+e-mail notifications. If you want to disable e-mail notifications again,
+delete the table `email` from your Cinderella configuration file or delete
+the whole Cinderella configuration file.
