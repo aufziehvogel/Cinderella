@@ -6,11 +6,20 @@ use evalexpr;
 
 use crate::pipeline;
 
+pub enum ExecutionResult {
+    NoExecution,
+    Success,
+    Error(String),
+}
+
 pub fn execute<W: Write>(
     pipelines: &Vec<pipeline::Pipeline>,
     variables: &HashMap<String, String>,
-    stdout: &mut W)
+    stdout: &mut W) -> ExecutionResult
 {
+    // TODO: Refactor this whole function to get a cleaner design
+    let mut executed_at_least_one = false;
+
     for pipeline in pipelines {
         let execute = match &pipeline.when {
             Some(when) => {
@@ -20,15 +29,26 @@ pub fn execute<W: Write>(
         };
 
         if execute {
-            execute_pipeline(pipeline, &variables, stdout);
+            executed_at_least_one = true;
+            let res = execute_pipeline(pipeline, &variables, stdout);
+
+            if let ExecutionResult::Error(msg) = res {
+                return ExecutionResult::Error(msg);
+            }
         }
+    }
+
+    if executed_at_least_one {
+        ExecutionResult::Success
+    } else {
+        ExecutionResult::NoExecution
     }
 }
 
 fn execute_pipeline<W: Write>(
     pipeline: &pipeline::Pipeline,
     variables: &HashMap<String, String>,
-    stdout: &mut W)
+    stdout: &mut W) -> ExecutionResult
 {
     writeln!(stdout, "Executing pipeline \"{}\"\n", pipeline.name).unwrap();
 
@@ -45,8 +65,14 @@ fn execute_pipeline<W: Write>(
             .expect(&format!("failed to run {}", cmd));
 
         stdout.write_all(&output.stdout).unwrap();
-        assert!(output.status.success());
+
+        if !output.status.success() {
+            return ExecutionResult::Error(
+                String::from(format!("Pipeline failed in step: {}", cmd)));
+        }
     }
+
+    ExecutionResult::Success
 }
 
 fn split_command<'a>(command: &'a str) -> Vec<&'a str> {

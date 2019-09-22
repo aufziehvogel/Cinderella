@@ -10,7 +10,9 @@ mod config;
 mod vcs;
 mod pipeline;
 mod execution;
+mod mail;
 
+use crate::execution::ExecutionResult;
 use crate::vcs::CodeSource;
 use crate::vcs::WorkingCopy;
 
@@ -39,7 +41,7 @@ fn cinderella_file(folder: &PathBuf) -> PathBuf {
 }
 
 pub fn run(repo_ptr: &RepoPointer) {
-    let _config = config::read_config();
+    let config = config::read_config(env::current_dir().unwrap());
 
     let repo = vcs::GitSource {
         src: repo_ptr.repo_url.clone(),
@@ -70,7 +72,13 @@ pub fn run(repo_ptr: &RepoPointer) {
     if let Some(pipelines) = pipeline::load_pipeline(&cinderella_file) {
         // TODO: Check if execution was successful. If not and if email is
         // configured, send a mail
-        execution::execute(&pipelines, &variables, &mut io::stdout());
+        let res = execution::execute(&pipelines, &variables, &mut io::stdout());
+
+        if let Some(config) = config.email {
+            if let ExecutionResult::Error(msg) = res {
+                mail::send_mail(&format!("Build failed: {}", msg), &config);
+            }
+        }
     } else {
         println!("No Cinderella configuration found");
     }
