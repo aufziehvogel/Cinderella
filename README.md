@@ -46,6 +46,10 @@ commands = [
 ]
 ```
 
+All `commands` are executed as programs, i.e. no shell is involved. If you
+want to execute one or multiple commands in a shell you have to call the
+desired shell manually.
+
 Pipelines are executed in the order in which they are defined. For the
 given configuration file it is ensured that first `test` is being executed
 followed by `build-release`.
