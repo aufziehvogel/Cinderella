@@ -5,25 +5,66 @@ use lettre::smtp::ConnectionReuseParameters;
 
 use crate::config;
 
-pub fn send_mail(text: &str, config: &config::Email) {
-    let email = Email::builder()
-        .to(config.to.to_string())
-        .from(config.from.to_string())
-        .subject("Build failed")
-        .text(text)
-        .build()
-        .unwrap();
+pub trait Mailer {
+    fn send_mail(&self, text: &str);
+}
 
-    let mut mailer = SmtpClient::new_simple(&config.server).unwrap()
-        .credentials(Credentials::new(
-            config.user.to_string(),
-            config.password.to_string()))
-        .smtp_utf8(true)
-        .authentication_mechanism(Mechanism::Plain)
-        .connection_reuse(ConnectionReuseParameters::ReuseUnlimited).transport();
+struct NullMailer;
 
-    if let Err(_err) = mailer.send(email.into()) {
-        // TODO: Add logging here
-        panic!("Sending of mail failed");
+struct SmtpMailer {
+    pub server: String,
+    pub user: String,
+    pub password: String,
+    pub from: String,
+    pub to: String,
+}
+
+impl SmtpMailer {
+    pub fn from_config(config: &config::Email) -> SmtpMailer {
+        SmtpMailer {
+            server: config.server.clone(),
+            user: config.user.clone(),
+            password: config.password.clone(),
+            from: config.from.clone(),
+            to: config.to.clone(),
+        }
+    }
+}
+
+impl Mailer for NullMailer {
+    fn send_mail(&self, _text: &str) {
+
+    }
+}
+
+impl Mailer for SmtpMailer {
+    fn send_mail(&self, text: &str) {
+        let email = Email::builder()
+            .to(self.to.to_string())
+            .from(self.from.to_string())
+            .subject("Build failed")
+            .text(text)
+            .build()
+            .unwrap();
+
+        let mut mailer = SmtpClient::new_simple(&self.server).unwrap()
+            .credentials(Credentials::new(
+                self.user.to_string(),
+                self.password.to_string()))
+            .smtp_utf8(true)
+            .authentication_mechanism(Mechanism::Plain)
+            .connection_reuse(ConnectionReuseParameters::ReuseUnlimited).transport();
+
+        if let Err(_err) = mailer.send(email.into()) {
+            // TODO: Add logging here
+            panic!("Sending of mail failed");
+        }
+    }
+}
+
+pub fn build_mailer(config: &Option<config::Email>) -> Box<dyn Mailer> {
+    match config {
+        None => Box::new(NullMailer),
+        Some(config) => Box::new(SmtpMailer::from_config(&config)),
     }
 }
