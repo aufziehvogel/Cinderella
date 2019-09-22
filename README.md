@@ -101,3 +101,17 @@ If Cinderella finds a `config.toml` file with a table `email` it will enable
 e-mail notifications. If you want to disable e-mail notifications again,
 delete the table `email` from your Cinderella configuration file or delete
 the whole Cinderella configuration file.
+
+
+Open Points
+-----------
+
+This is a list of open points that are subject to implementation:
+
+- on all errors during execution (`panic!`, `unwrap` errors, `expect` errors)
+  return a `ExecutionResult::Fatal(String)`
+- keep a status of the last result per repository (to send *OK again* mails)
+- send a more detailed error message on the build error reason:
+  - return code of the failed command
+  - full log of the executed commands (in a prompt style, command followed by
+    output)
