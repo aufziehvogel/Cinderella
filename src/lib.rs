@@ -40,8 +40,16 @@ fn cinderella_file(folder: &PathBuf) -> PathBuf {
     cinderella_file
 }
 
+fn appconfig_file() -> PathBuf {
+    let mut application_path = env::current_exe().unwrap();
+    application_path.pop();
+    application_path.push("config.toml");
+
+    application_path
+}
+
 pub fn run(repo_ptr: &RepoPointer) {
-    let config = config::read_config(env::current_dir().unwrap());
+    let config = config::read_config(appconfig_file());
 
     let repo = vcs::GitSource {
         src: repo_ptr.repo_url.clone(),

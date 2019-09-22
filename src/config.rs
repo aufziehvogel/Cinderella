@@ -19,7 +19,6 @@ pub struct Email {
 }
 
 pub fn read_config(path: PathBuf) -> Config {
-    // TODO: Use path relative to binary, not to CWD
     match fs::read_to_string(path) {
         Ok(contents) => {
             toml::from_str(&contents).expect("Configuration invalid")
