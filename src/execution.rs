@@ -9,7 +9,8 @@ use crate::pipeline;
 pub enum ExecutionResult {
     NoExecution,
     Success,
-    Error(String),
+    BuildError(String),
+    ExecutionError(String),
 }
 
 pub fn execute<W: Write>(
@@ -32,8 +33,10 @@ pub fn execute<W: Write>(
             executed_at_least_one = true;
             let res = execute_pipeline(pipeline, &variables, stdout);
 
-            if let ExecutionResult::Error(msg) = res {
-                return ExecutionResult::Error(msg);
+            if let ExecutionResult::BuildError(msg) = res {
+                return ExecutionResult::BuildError(msg);
+            } else if let ExecutionResult::ExecutionError(msg) = res {
+                return ExecutionResult::ExecutionError(msg);
             }
         }
     }
@@ -61,13 +64,16 @@ fn execute_pipeline<W: Write>(
         let parts = split_command(&cmd);
         let output = Command::new(parts[0])
             .args(&parts[1..])
-            .output()
-            .expect(&format!("failed to run {}", cmd));
+            .output();
+        let output = match output {
+            Ok(output) => output,
+            Err(e) => return ExecutionResult::ExecutionError(e.to_string()),
+        };
 
         stdout.write_all(&output.stdout).unwrap();
 
         if !output.status.success() {
-            return ExecutionResult::Error(
+            return ExecutionResult::BuildError(
                 String::from(format!("Pipeline failed in step: {}", cmd)));
         }
     }

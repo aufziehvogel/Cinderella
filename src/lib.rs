@@ -82,9 +82,12 @@ pub fn run(repo_ptr: &RepoPointer) {
         // configured, send a mail
         let res = execution::execute(&pipelines, &variables, &mut io::stdout());
 
-        if let ExecutionResult::Error(msg) = res {
-            let mailer = mail::build_mailer(&config.email);
-            mailer.send_mail(&format!("Build failed: {}", msg));
+        match res {
+            ExecutionResult::BuildError(msg) | ExecutionResult::ExecutionError(msg) => {
+                let mailer = mail::build_mailer(&config.email);
+                mailer.send_mail(&format!("Build failed: {}", msg));
+            },
+            _ => (),
         }
     } else {
         println!("No Cinderella configuration found");
