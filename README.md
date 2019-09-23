@@ -108,8 +108,8 @@ Open Points
 
 This is a list of open points that are subject to implementation:
 
-- on all errors during execution (`panic!`, `unwrap` errors, `expect` errors)
-  return a `ExecutionResult::Fatal(String)`
+- parse commands that put multiple words in one argument with quotation marks
+  (`mycommand "one argument"`) correctly
 - keep a status of the last result per repository (to send *OK again* mails)
 - send a more detailed error message on the build error reason:
   - return code of the failed command
