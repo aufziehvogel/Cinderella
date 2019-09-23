@@ -23,7 +23,7 @@ You can also manually execute Cinderella. To do so pass it the path to your
 git repository and optionally the name of the branch you want to build:
 
 ```bash
-cinderella https://github.com/aufziehvogel/Cinderella.git --branch development
+cinderella https://github.com/aufziehvogel/Cinderella.git --branch master
 ```
 
 
