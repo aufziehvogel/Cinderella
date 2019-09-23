@@ -83,9 +83,9 @@ pub fn run(repo_ptr: &RepoPointer) {
         let res = execution::execute(&pipelines, &variables, &mut io::stdout());
 
         match res {
-            ExecutionResult::BuildError(msg) | ExecutionResult::ExecutionError(msg) => {
+            ExecutionResult::BuildError(msg, output) | ExecutionResult::ExecutionError(msg, output) => {
                 let mailer = mail::build_mailer(&config.email);
-                mailer.send_mail(&format!("Build failed: {}", msg));
+                mailer.send_mail(&format!("Build failed: {}\n{}", msg, output));
             },
             _ => (),
         }

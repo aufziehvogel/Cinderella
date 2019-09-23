@@ -9,8 +9,9 @@ use crate::pipeline;
 pub enum ExecutionResult {
     NoExecution,
     Success,
-    BuildError(String),
-    ExecutionError(String),
+    // failed command and its output
+    BuildError(String, String),
+    ExecutionError(String, String),
 }
 
 pub fn execute<W: Write>(
@@ -33,10 +34,11 @@ pub fn execute<W: Write>(
             executed_at_least_one = true;
             let res = execute_pipeline(pipeline, &variables, stdout);
 
-            if let ExecutionResult::BuildError(msg) = res {
-                return ExecutionResult::BuildError(msg);
-            } else if let ExecutionResult::ExecutionError(msg) = res {
-                return ExecutionResult::ExecutionError(msg);
+            match res {
+                ExecutionResult::BuildError(_, _) | ExecutionResult::ExecutionError(_, _) => {
+                    return res;
+                },
+                _ => (),
             }
         }
     }
@@ -67,14 +69,16 @@ fn execute_pipeline<W: Write>(
             .output();
         let output = match output {
             Ok(output) => output,
-            Err(e) => return ExecutionResult::ExecutionError(e.to_string()),
+            Err(e) => return ExecutionResult::ExecutionError(cmd, e.to_string()),
         };
 
         stdout.write_all(&output.stdout).unwrap();
 
+        let outtext = String::from_utf8(output.stdout.iter().map(|&c| c as u8).collect()).unwrap();
         if !output.status.success() {
             return ExecutionResult::BuildError(
-                String::from(format!("Pipeline failed in step: {}", cmd)));
+                String::from(format!("Pipeline failed in step: {}", cmd)),
+                outtext);
         }
     }
 
