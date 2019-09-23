@@ -83,9 +83,17 @@ pub fn run(repo_ptr: &RepoPointer) {
         let res = execution::execute(&pipelines, &variables, &mut io::stdout());
 
         match res {
-            ExecutionResult::BuildError(msg, output) | ExecutionResult::ExecutionError(msg, output) => {
+            ExecutionResult::BuildError(msg, output, code) => {
+                let code_msg = match code {
+                    Some(code) => format!("Exited with status code: {}", code),
+                    None => format!("Process terminated by signal")
+                };
                 let mailer = mail::build_mailer(&config.email);
-                mailer.send_mail(&format!("Build failed: {}\n{}", msg, output));
+                mailer.send_mail(&format!("Build failed: {}\n{}\n\n{}", msg, code_msg, output));
+            },
+            ExecutionResult::ExecutionError(msg, output) => {
+                let mailer = mail::build_mailer(&config.email);
+                mailer.send_mail(&format!("Build failed: {}\n\n{}", msg, output));
             },
             _ => (),
         }

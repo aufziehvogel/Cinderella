@@ -10,7 +10,7 @@ pub enum ExecutionResult {
     NoExecution,
     Success,
     // failed command and its output
-    BuildError(String, String),
+    BuildError(String, String, Option<i32>),
     ExecutionError(String, String),
 }
 
@@ -35,7 +35,7 @@ pub fn execute<W: Write>(
             let res = execute_pipeline(pipeline, &variables, stdout);
 
             match res {
-                ExecutionResult::BuildError(_, _) | ExecutionResult::ExecutionError(_, _) => {
+                ExecutionResult::BuildError(_, _, _) | ExecutionResult::ExecutionError(_, _) => {
                     return res;
                 },
                 _ => (),
@@ -78,7 +78,9 @@ fn execute_pipeline<W: Write>(
         if !output.status.success() {
             return ExecutionResult::BuildError(
                 String::from(format!("Pipeline failed in step: {}", cmd)),
-                outtext);
+                outtext,
+                output.status.code()
+            );
         }
     }
 
