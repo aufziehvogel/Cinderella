@@ -4,6 +4,7 @@ use std::io::Write;
 
 use evalexpr;
 
+use crate::parser;
 use crate::pipeline;
 
 pub enum ExecutionResult {
@@ -63,8 +64,8 @@ fn execute_pipeline<W: Write>(
         let cmd = replace_variables(&cmd, &variables);
         // TODO: Raise error if some variables remain unsubstituted?
 
-        let parts = split_command(&cmd);
-        let output = Command::new(parts[0])
+        let parts = parser::parse_command(&cmd);
+        let output = Command::new(&parts[0])
             .args(&parts[1..])
             .output();
         let output = match output {
@@ -85,14 +86,6 @@ fn execute_pipeline<W: Write>(
     }
 
     ExecutionResult::Success
-}
-
-fn split_command<'a>(command: &'a str) -> Vec<&'a str> {
-    // TODO: Successful argument parsing needs a lot more details,
-    // e.g. for quoted arguments like myprogram "argument 1"
-    // but for a first shot this works
-    let parts: Vec<&str> = command.split(" ").collect();
-    parts
 }
 
 fn execute_test(test: &str, variables: &HashMap<String, String>) -> bool {

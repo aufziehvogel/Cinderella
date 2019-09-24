@@ -8,6 +8,7 @@ use rand::distributions::Alphanumeric;
 
 mod config;
 mod vcs;
+mod parser;
 mod pipeline;
 mod execution;
 mod mail;
