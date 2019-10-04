@@ -6,7 +6,7 @@ use lettre::smtp::ConnectionReuseParameters;
 use crate::config;
 
 pub trait Mailer {
-    fn send_mail(&self, text: &str);
+    fn send_mail(&self, name: &str, text: &str);
 }
 
 struct NullMailer;
@@ -32,17 +32,17 @@ impl SmtpMailer {
 }
 
 impl Mailer for NullMailer {
-    fn send_mail(&self, _text: &str) {
+    fn send_mail(&self, _name: &str, _text: &str) {
 
     }
 }
 
 impl Mailer for SmtpMailer {
-    fn send_mail(&self, text: &str) {
+    fn send_mail(&self, name: &str, text: &str) {
         let email = Email::builder()
             .to(self.to.to_string())
             .from(self.from.to_string())
-            .subject("Build failed")
+            .subject(format!("Build failed: {}", name))
             .text(text)
             .build()
             .unwrap();

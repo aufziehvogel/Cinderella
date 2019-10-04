@@ -22,6 +22,13 @@ pub struct RepoPointer {
     pub branch: Option<String>,
 }
 
+impl RepoPointer {
+    // TODO: This approach only works for URLs, not for local paths.
+    fn name(&self) -> String {
+        self.repo_url.split('/').last().unwrap().to_string()
+    }
+}
+
 fn random_dir(base_path: &str) -> PathBuf {
     let mut tempdir = PathBuf::from(base_path);
 
@@ -90,11 +97,15 @@ pub fn run(repo_ptr: &RepoPointer) {
                     None => format!("Process terminated by signal")
                 };
                 let mailer = mail::build_mailer(&config.email);
-                mailer.send_mail(&format!("Build failed: {}\n{}\n\n{}", msg, code_msg, output));
+                mailer.send_mail(
+                    &repo_ptr.name(),
+                    &format!("Build failed: {}\n{}\n\n{}", msg, code_msg, output));
             },
             ExecutionResult::ExecutionError(msg, output) => {
                 let mailer = mail::build_mailer(&config.email);
-                mailer.send_mail(&format!("Build failed: {}\n\n{}", msg, output));
+                mailer.send_mail(
+                    &repo_ptr.name(),
+                    &format!("Build failed: {}\n\n{}", msg, output));
             },
             _ => (),
         }
