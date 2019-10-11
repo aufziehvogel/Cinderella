@@ -1,7 +1,7 @@
 use std::env;
 
 use getopts::Options;
-use cinderella::RepoPointer;
+use cinderella::ExecutionConfig;
 
 fn print_usage(program: &str, opts: Options) {
     let brief = format!("Usage: {} REPO_URL [options]", program);
@@ -14,6 +14,7 @@ fn main() {
 
     let mut opts = Options::new();
     opts.optopt("b", "branch", "set the branch to checkout", "BRANCH");
+    opts.optopt("f", "file", "set a file to the cinderella CI configuration", "FILEPATH");
 
     let matches = match opts.parse(&args[1..]) {
         Ok(m) => { m },
@@ -27,9 +28,10 @@ fn main() {
         return;
     };
 
-    let repo = RepoPointer {
+    let repo = ExecutionConfig {
         repo_url: repository_url,
         branch: matches.opt_str("b"),
+        cinderella_filepath: matches.opt_str("f"),
     };
 
     cinderella::run(&repo)

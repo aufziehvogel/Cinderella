@@ -26,6 +26,15 @@ git repository and optionally the name of the branch you want to build:
 cinderella https://github.com/aufziehvogel/Cinderella.git --branch master
 ```
 
+You can use a different path than `.cinderella.toml` for your CI configuration
+file with the argument `-f` or `--file`. This argument is evaluated relatively
+to the git work directory. If you want to use a CI configuration file local
+to your shell directory use absolute paths.
+
+```bash
+cinderella https://github.com/aufziehvogel/Cinderella.git --file /home/user/cinderella-test.toml
+```
+
 
 CI Configuration Format
 -----------------------
