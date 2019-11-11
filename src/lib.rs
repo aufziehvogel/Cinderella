@@ -1,7 +1,7 @@
-use std::collections::HashMap;
 use std::env;
+use std::fs;
 use std::io;
-use std::path::PathBuf;
+use std::path::{Path, PathBuf};
 
 use rand::Rng;
 use rand::distributions::Alphanumeric;
@@ -12,6 +12,8 @@ mod parser;
 mod pipeline;
 mod execution;
 mod mail;
+mod crypto;
+mod variables;
 
 use crate::execution::ExecutionResult;
 use crate::vcs::CodeSource;
@@ -76,15 +78,10 @@ pub fn run(exec_config: &ExecutionConfig) {
 
     println!("Workdir is at {:?}", workdir.path);
 
-    // setup variables for pipelines
-    let mut variables = HashMap::new();
-
     // checkout the branch if a branch was provided
     if let Some(branch) = &exec_config.branch {
         println!("Switching to branch {}", branch);
         workdir.checkout_branch(&branch);
-
-        variables.insert("branch".to_string(), branch.to_string());
     }
 
     // Switch to the exported work dir so that all commands
@@ -95,6 +92,7 @@ pub fn run(exec_config: &ExecutionConfig) {
     if let Some(pipelines) = pipeline::load_pipeline(&cinderella_file) {
         // TODO: Check if execution was successful. If not and if email is
         // configured, send a mail
+        let variables = variables::load(&exec_config.branch);
         let res = execution::execute(&pipelines, &variables, &mut io::stdout());
 
         match res {
@@ -122,5 +120,22 @@ pub fn run(exec_config: &ExecutionConfig) {
         }
     } else {
         println!("No Cinderella configuration found");
+    }
+}
+
+pub fn encrypt(plainpath: &Path, cipherpath: &Path, password: &str) {
+    let plaintext = fs::read_to_string(plainpath)
+        .expect("Unable to read file");
+
+    let cipher = crypto::encrypt_string(&plaintext, password);
+    fs::write(cipherpath, cipher).expect("Unable to write file");
+}
+
+pub fn decrypt(cipherpath: &Path, plainpath: &Path, password: &str) {
+    match crypto::decrypt_file(&cipherpath, password) {
+        Ok(plaintext) => {
+            fs::write(plainpath, plaintext).expect("Unable to write file");
+        },
+        _ => println!("Cannot decrypt, probably wrong password"),
     }
 }

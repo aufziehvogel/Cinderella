@@ -23,7 +23,7 @@ You can also manually execute Cinderella. To do so pass it the path to your
 git repository and optionally the name of the branch you want to build:
 
 ```bash
-cinderella https://github.com/aufziehvogel/Cinderella.git --branch master
+cinderella run https://github.com/aufziehvogel/Cinderella.git --branch master
 ```
 
 You can use a different path than `.cinderella.toml` for your CI configuration
@@ -32,7 +32,7 @@ to the git work directory. If you want to use a CI configuration file local
 to your shell directory use absolute paths.
 
 ```bash
-cinderella https://github.com/aufziehvogel/Cinderella.git --file /home/user/cinderella-test.toml
+cinderella run https://github.com/aufziehvogel/Cinderella.git --file /home/user/cinderella-test.toml
 ```
 
 
@@ -110,6 +110,62 @@ If Cinderella finds a `config.toml` file with a table `email` it will enable
 e-mail notifications. If you want to disable e-mail notifications again,
 delete the table `email` from your Cinderella configuration file or delete
 the whole Cinderella configuration file.
+
+
+Encrypted Variables
+-------------------
+
+Sometimes a script needs to use credentials that you do not want to store in
+a version control system in plaintext. For this use case, Cinderella supports
+the storage of variables in an encrypted file. This file has to be
+stored in `.cinderella/secrets`.
+
+In plaintext create a TOML file `.cinderella/secrets.toml` that looks as
+follows:
+
+```toml
+USERNAME = "my-user"
+PASSWORD = "my-secret"
+```
+
+Optionally, you can add the plaintext file to your `.gitignore`.
+You can create an encrypted file `.cinderella/secrets` by running the
+following command from your project's root directory:
+
+```bash
+cinderella encrypt
+```
+
+After this step you may delete the `secrets.toml` if you want.
+
+You can now use the variables in your build commands:
+
+```toml
+[build-release]
+commands = [
+   ".cinderella/upload-to-ftp.sh %USERNAME %PASSWORD",
+]
+```
+
+To decrypt the encrypted file (and re-create `secrets.toml`) run:
+
+```bash
+cinderella decrypt
+```
+
+The password you chose during encryption has to be set in the *Cinderella
+configuration file* (this means that you have to use the same password for
+all projects you test and build with Cinderella):
+
+```toml
+[secrets]
+password = "my-secret-for-decryption"
+```
+
+Of course, this means that an attacker on your server can decrypt all your
+secrets. Secret encryption only ensures that credentials are not stored in your
+repository in cleartext, but as soon as your server is compromised all your
+credentials are compromised.
 
 
 Open Points

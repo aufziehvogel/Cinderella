@@ -1,5 +1,7 @@
 use std::env;
+use std::path::Path;
 
+use rpassword;
 use getopts::Options;
 use cinderella::ExecutionConfig;
 
@@ -10,13 +12,42 @@ fn print_usage(program: &str, opts: Options) {
 
 fn main() {
     let args: Vec<String> = env::args().collect();
+
+    match args.get(1) {
+        Some(command) => {
+            match command.as_ref() {
+                "run" => run(args),
+                "encrypt" => encrypt(),
+                "decrypt" => decrypt(),
+                _ => println!("Unknown command!"),
+            }
+        },
+        None => println!("Please provide a command"),
+    }
+}
+
+fn encrypt() {
+    let pass = rpassword::read_password_from_tty(Some("Password: ")).unwrap();
+
+    cinderella::encrypt(Path::new(".cinderella/secrets.toml"),
+        Path::new(".cinderella/secrets"), &pass);
+}
+
+fn decrypt() {
+    let pass = rpassword::read_password_from_tty(Some("Password: ")).unwrap();
+
+    cinderella::decrypt(Path::new(".cinderella/secrets"),
+        Path::new(".cinderella/secrets.toml"), &pass);
+}
+
+fn run(args: Vec<String>) {
     let program = args[0].clone();
 
     let mut opts = Options::new();
     opts.optopt("b", "branch", "set the branch to checkout", "BRANCH");
     opts.optopt("f", "file", "set a file to the cinderella CI configuration", "FILEPATH");
 
-    let matches = match opts.parse(&args[1..]) {
+    let matches = match opts.parse(&args[2..]) {
         Ok(m) => { m },
         Err(f) => { panic!(f.to_string()) },
     };
