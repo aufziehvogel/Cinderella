@@ -112,6 +112,43 @@ delete the table `email` from your Cinderella configuration file or delete
 the whole Cinderella configuration file.
 
 
+Encrypted Environment Variables
+-------------------------------
+
+Sometimes a script needs to use credentials that you do not want to store in
+a version control system in cleartext. For this use case, Cinderella supports
+the storage of environment variables in an encrypted file. This file has to be
+stored in `.cinderella/secrets`.
+
+In cleartext create a TOML file `secrets.toml` that looks as follows:
+
+```toml
+USERNAME = "my-user"
+PASSWORD = "my-secret"
+```
+
+You have to encrypt this file with GnuPG:
+
+```bash
+gpg -o .cinderella/secrets -c secrets.toml
+rm secrets.toml
+```
+
+The password you chose during encryption has to be set in the *Cinderella
+configuration file* (this means that you have to use the same password for
+all projects you test and build with Cinderella):
+
+```toml
+[secrets]
+password = "my-secret-for-decryption"
+```
+
+Of course, this means that an attacker on your server can decrypt all your
+secrets. Secret encryption only ensures that credentials are not stored in your
+repository in cleartext, but as soon as your server is compromised all your
+credentials are compromised.
+
+
 Open Points
 -----------
 
