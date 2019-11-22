@@ -1,5 +1,6 @@
 use std::collections::HashMap;
 use std::env;
+use std::fs;
 use std::io;
 use std::path::PathBuf;
 
@@ -12,6 +13,7 @@ mod parser;
 mod pipeline;
 mod execution;
 mod mail;
+mod crypto;
 
 use crate::execution::ExecutionResult;
 use crate::vcs::CodeSource;
@@ -123,4 +125,16 @@ pub fn run(exec_config: &ExecutionConfig) {
     } else {
         println!("No Cinderella configuration found");
     }
+}
+
+pub fn encrypt(filepath: String) {
+    let plaintext = "some data";
+
+    let cipher = crypto::encrypt_string(plaintext);
+    fs::write(filepath, cipher).expect("Unable to write file");
+}
+
+pub fn decrypt(filepath: String) {
+    let plaintext = crypto::decrypt_file(&filepath);
+    println!("{}", plaintext);
 }
