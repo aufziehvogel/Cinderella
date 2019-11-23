@@ -130,7 +130,7 @@ pub fn run(exec_config: &ExecutionConfig) {
 pub fn encrypt(filepath: String) {
     let plaintext = "some data";
 
-    let cipher = crypto::encrypt_string(plaintext);
+    let cipher = crypto::encrypt_string(plaintext, "my-password");
     fs::write(filepath, cipher).expect("Unable to write file");
 }
 
