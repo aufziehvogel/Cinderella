@@ -30,7 +30,7 @@ pub fn gen_key_from_pw(password: &str) -> SaltedKey {
                            pwhash::MEMLIMIT_INTERACTIVE).unwrap();
 
         SaltedKey {
-            key: Key::from_slice(kb).unwrap(),
+            key: k,
             pwsalt: salt
         }
     }
