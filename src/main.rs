@@ -1,4 +1,5 @@
 use std::env;
+use std::path::Path;
 
 use rpassword;
 use getopts::Options;
@@ -27,13 +28,15 @@ fn main() {
 fn encrypt() {
     let pass = rpassword::read_password_from_tty(Some("Password: ")).unwrap();
 
-    cinderella::encrypt(".cinderella/secrets.toml", ".cinderella/secrets", &pass);
+    cinderella::encrypt(Path::new(".cinderella/secrets.toml"),
+        Path::new(".cinderella/secrets"), &pass);
 }
 
 fn decrypt() {
     let pass = rpassword::read_password_from_tty(Some("Password: ")).unwrap();
 
-    cinderella::decrypt(".cinderella/secrets", ".cinderella/secrets.toml", &pass);
+    cinderella::decrypt(Path::new(".cinderella/secrets"),
+        Path::new(".cinderella/secrets.toml"), &pass);
 }
 
 fn run(args: Vec<String>) {

@@ -2,7 +2,7 @@ use std::collections::HashMap;
 use std::env;
 use std::fs;
 use std::io;
-use std::path::PathBuf;
+use std::path::{Path, PathBuf};
 
 use rand::Rng;
 use rand::distributions::Alphanumeric;
@@ -127,7 +127,7 @@ pub fn run(exec_config: &ExecutionConfig) {
     }
 }
 
-pub fn encrypt(plainpath: &str, cipherpath: &str, password: &str) {
+pub fn encrypt(plainpath: &Path, cipherpath: &Path, password: &str) {
     let plaintext = fs::read_to_string(plainpath)
         .expect("Unable to read file");
 
@@ -135,7 +135,7 @@ pub fn encrypt(plainpath: &str, cipherpath: &str, password: &str) {
     fs::write(cipherpath, cipher).expect("Unable to write file");
 }
 
-pub fn decrypt(cipherpath: &str, plainpath: &str, password: &str) {
+pub fn decrypt(cipherpath: &Path, plainpath: &Path, password: &str) {
     match crypto::decrypt_file(&cipherpath, password) {
         Ok(plaintext) => {
             fs::write(plainpath, plaintext).expect("Unable to write file");
