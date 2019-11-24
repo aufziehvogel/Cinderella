@@ -1,4 +1,3 @@
-use std::collections::HashMap;
 use std::env;
 use std::fs;
 use std::io;
@@ -14,6 +13,7 @@ mod pipeline;
 mod execution;
 mod mail;
 mod crypto;
+mod variables;
 
 use crate::execution::ExecutionResult;
 use crate::vcs::CodeSource;
@@ -78,15 +78,10 @@ pub fn run(exec_config: &ExecutionConfig) {
 
     println!("Workdir is at {:?}", workdir.path);
 
-    // setup variables for pipelines
-    let mut variables = HashMap::new();
-
     // checkout the branch if a branch was provided
     if let Some(branch) = &exec_config.branch {
         println!("Switching to branch {}", branch);
         workdir.checkout_branch(&branch);
-
-        variables.insert("branch".to_string(), branch.to_string());
     }
 
     // Switch to the exported work dir so that all commands
@@ -97,6 +92,7 @@ pub fn run(exec_config: &ExecutionConfig) {
     if let Some(pipelines) = pipeline::load_pipeline(&cinderella_file) {
         // TODO: Check if execution was successful. If not and if email is
         // configured, send a mail
+        let variables = variables::load(&exec_config.branch);
         let res = execution::execute(&pipelines, &variables, &mut io::stdout());
 
         match res {
