@@ -127,14 +127,16 @@ pub fn run(exec_config: &ExecutionConfig) {
     }
 }
 
-pub fn encrypt(filepath: String) {
+pub fn encrypt(filepath: String, password: &str) {
     let plaintext = "some data";
 
-    let cipher = crypto::encrypt_string(plaintext, "my-password");
+    let cipher = crypto::encrypt_string(plaintext, password);
     fs::write(filepath, cipher).expect("Unable to write file");
 }
 
-pub fn decrypt(filepath: String) {
-    let plaintext = crypto::decrypt_file(&filepath);
-    println!("{}", plaintext);
+pub fn decrypt(filepath: String, password: &str) {
+    match crypto::decrypt_file(&filepath, password) {
+        Ok(plaintext) => println!("{}", plaintext),
+        _ => println!("Cannot decrypt, probably wrong password"),
+    }
 }

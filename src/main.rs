@@ -1,5 +1,6 @@
 use std::env;
 
+use rpassword;
 use getopts::Options;
 use cinderella::ExecutionConfig;
 
@@ -29,7 +30,9 @@ fn encrypt(args: Vec<String>) {
     } else {
         let filepath = args[2].clone();
 
-        cinderella::encrypt(filepath);
+        let pass = rpassword::read_password_from_tty(Some("Password: ")).unwrap();
+
+        cinderella::encrypt(filepath, &pass);
     }
 }
 
@@ -39,7 +42,9 @@ fn decrypt(args: Vec<String>) {
     } else {
         let filepath = args[2].clone();
 
-        cinderella::decrypt(filepath);
+        let pass = rpassword::read_password_from_tty(Some("Password: ")).unwrap();
+
+        cinderella::decrypt(filepath, &pass);
     }
 }
 

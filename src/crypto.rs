@@ -7,20 +7,18 @@ use sodiumoxide::crypto::secretbox::{self, Key, Nonce};
 use sodiumoxide::crypto::pwhash::{self, Salt};
 
 #[derive(Serialize, Deserialize)]
-pub struct CryptoFile {
+struct CryptoFile {
     pwsalt: Salt,
     nonce: Nonce,
     content: Vec<u8>,
 }
 
-pub struct SaltedKey {
+struct SaltedKey {
     pwsalt: Salt,
     key: Key,
 }
 
-pub fn gen_key_from_pw(password: &str) -> SaltedKey {
-    let salt = pwhash::gen_salt();
-
+fn gen_salted_key(password: &str, salt: Salt) -> SaltedKey {
     // cf. https://docs.rs/sodiumoxide/0.2.5/sodiumoxide/crypto/pwhash/index.html#example-key-derivation
     let mut k = secretbox::Key([0; secretbox::KEYBYTES]);
     {
@@ -36,8 +34,13 @@ pub fn gen_key_from_pw(password: &str) -> SaltedKey {
     }
 }
 
+fn gen_salted_key_random_salt(password: &str) -> SaltedKey {
+    let salt = pwhash::gen_salt();
+    gen_salted_key(password, salt)
+}
+
 pub fn encrypt_string(plaintext: &str, password: &str) -> Vec<u8> {
-    let salted_key = gen_key_from_pw(password);
+    let salted_key = gen_salted_key_random_salt(password);
     let nonce = secretbox::gen_nonce();
     let ciphertext = secretbox::seal(plaintext.as_bytes(),
                                      &nonce, &salted_key.key);
@@ -51,11 +54,11 @@ pub fn encrypt_string(plaintext: &str, password: &str) -> Vec<u8> {
     rmp_serde::to_vec(&f).unwrap()
 }
 
-pub fn decrypt_file(filepath: &str) -> String {
+pub fn decrypt_file(filepath: &str, password: &str) -> Result<String, ()> {
     let r = File::open(filepath).unwrap();
     let f: CryptoFile = rmp_serde::from_read(r).unwrap();
-    let key = secretbox::gen_key();
+    let salted_key = gen_salted_key(password, f.pwsalt);
 
-    let bytes = secretbox::open(&f.content, &f.nonce, &key).unwrap();
-    String::from_utf8(bytes).unwrap()
+    secretbox::open(&f.content, &f.nonce, &salted_key.key)
+        .map(|bytes| String::from_utf8(bytes).unwrap())
 }
