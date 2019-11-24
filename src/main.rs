@@ -17,35 +17,23 @@ fn main() {
     } else {
         match args[1].as_ref() {
             "run" => run(args),
-            "encrypt" => encrypt(args),
-            "decrypt" => decrypt(args),
+            "encrypt" => encrypt(),
+            "decrypt" => decrypt(),
             _ => println!("Unknown command!"),
         };
     }
 }
 
-fn encrypt(args: Vec<String>) {
-    if args.len() < 3 {
-        println!("Please provide the path to a file");
-    } else {
-        let filepath = args[2].clone();
+fn encrypt() {
+    let pass = rpassword::read_password_from_tty(Some("Password: ")).unwrap();
 
-        let pass = rpassword::read_password_from_tty(Some("Password: ")).unwrap();
-
-        cinderella::encrypt(filepath, &pass);
-    }
+    cinderella::encrypt(".cinderella/secrets.toml", ".cinderella/secrets", &pass);
 }
 
-fn decrypt(args: Vec<String>) {
-    if args.len() < 3 {
-        println!("Please provide the path to a file");
-    } else {
-        let filepath = args[2].clone();
+fn decrypt() {
+    let pass = rpassword::read_password_from_tty(Some("Password: ")).unwrap();
 
-        let pass = rpassword::read_password_from_tty(Some("Password: ")).unwrap();
-
-        cinderella::decrypt(filepath, &pass);
-    }
+    cinderella::decrypt(".cinderella/secrets", ".cinderella/secrets.toml", &pass);
 }
 
 fn run(args: Vec<String>) {
