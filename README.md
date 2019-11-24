@@ -23,7 +23,7 @@ You can also manually execute Cinderella. To do so pass it the path to your
 git repository and optionally the name of the branch you want to build:
 
 ```bash
-cinderella https://github.com/aufziehvogel/Cinderella.git --branch master
+cinderella run https://github.com/aufziehvogel/Cinderella.git --branch master
 ```
 
 You can use a different path than `.cinderella.toml` for your CI configuration
@@ -32,7 +32,7 @@ to the git work directory. If you want to use a CI configuration file local
 to your shell directory use absolute paths.
 
 ```bash
-cinderella https://github.com/aufziehvogel/Cinderella.git --file /home/user/cinderella-test.toml
+cinderella run https://github.com/aufziehvogel/Cinderella.git --file /home/user/cinderella-test.toml
 ```
 
 
@@ -116,22 +116,31 @@ Encrypted Environment Variables
 -------------------------------
 
 Sometimes a script needs to use credentials that you do not want to store in
-a version control system in cleartext. For this use case, Cinderella supports
+a version control system in plaintext. For this use case, Cinderella supports
 the storage of environment variables in an encrypted file. This file has to be
 stored in `.cinderella/secrets`.
 
-In cleartext create a TOML file `secrets.toml` that looks as follows:
+In plaintext create a TOML file `.cinderella/secrets.toml` that looks as
+follows:
 
 ```toml
 USERNAME = "my-user"
 PASSWORD = "my-secret"
 ```
 
-You have to encrypt this file with GnuPG:
+Optionally, you can add the plaintext file to your `.gitignore`.
+You can create an encrypted file `.cinderella/secrets` by running the
+following command from your project's root directory:
 
 ```bash
-gpg -o .cinderella/secrets -c secrets.toml
-rm secrets.toml
+cinderella encrypt
+```
+
+After this step you may delete the `secrets.toml` if you want. To decrypt
+the encrypted file (and re-create `secrets.toml`) run:
+
+```bash
+cinderella decrypt
 ```
 
 The password you chose during encryption has to be set in the *Cinderella
