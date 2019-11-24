@@ -13,15 +13,16 @@ fn print_usage(program: &str, opts: Options) {
 fn main() {
     let args: Vec<String> = env::args().collect();
 
-    if args.len() < 2 {
-        println!("Please provide a command");
-    } else {
-        match args[1].as_ref() {
-            "run" => run(args),
-            "encrypt" => encrypt(),
-            "decrypt" => decrypt(),
-            _ => println!("Unknown command!"),
-        };
+    match args.get(1) {
+        Some(command) => {
+            match command.as_ref() {
+                "run" => run(args),
+                "encrypt" => encrypt(),
+                "decrypt" => decrypt(),
+                _ => println!("Unknown command!"),
+            }
+        },
+        None => println!("Please provide a command"),
     }
 }
 
