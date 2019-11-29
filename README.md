@@ -117,9 +117,13 @@ Open Points
 
 This is a list of open points that are subject to implementation:
 
-- execute an existing `cinderella.toml` file with a repository (not the
-  CI configuration in the repo), useful for testing changes to a CI
-  configuration before committing
+- introduce command shortcuts for commands that are often used but annoying
+  to write in their full form
+  - `"[bash] foo && bar"` for `"bash -c \"foo && bar\""`
+  - `"[python-venv env] pip install -r requirements.txt && ./foo"` for
+    `"bash -c \"source env/bin/activate && pip install -r requirements.txt && ./foo\""`
+- substitute important environment variables like `$HOME` so that we do not
+  have to run a bash in order to use them (or all environment variables?)
 - keep a status of the last result per repository (to send *OK again* mails)
 - send a more detailed error message on the build error reason:
   - return code of the failed command
