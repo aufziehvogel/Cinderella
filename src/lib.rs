@@ -99,6 +99,8 @@ pub fn run(exec_config: &ExecutionConfig) {
 
         match res {
             ExecutionResult::BuildError(msg, output, code) => {
+                eprintln!("Build failed: {}\n\n{}", msg, output);
+
                 let code_msg = match code {
                     Some(code) => format!("Exited with status code: {}", code),
                     None => format!("Process terminated by signal")
@@ -109,6 +111,8 @@ pub fn run(exec_config: &ExecutionConfig) {
                     &format!("Build failed: {}\n{}\n\n{}", msg, code_msg, output));
             },
             ExecutionResult::ExecutionError(msg, output) => {
+                eprintln!("Build failed: {}\n\n{}", msg, output);
+
                 let mailer = mail::build_mailer(&config.email);
                 mailer.send_mail(
                     &exec_config.name(),
