@@ -112,12 +112,12 @@ delete the table `email` from your Cinderella configuration file or delete
 the whole Cinderella configuration file.
 
 
-Encrypted Environment Variables
--------------------------------
+Encrypted Variables
+-------------------
 
 Sometimes a script needs to use credentials that you do not want to store in
 a version control system in plaintext. For this use case, Cinderella supports
-the storage of environment variables in an encrypted file. This file has to be
+the storage of variables in an encrypted file. This file has to be
 stored in `.cinderella/secrets`.
 
 In plaintext create a TOML file `.cinderella/secrets.toml` that looks as
@@ -136,8 +136,18 @@ following command from your project's root directory:
 cinderella encrypt
 ```
 
-After this step you may delete the `secrets.toml` if you want. To decrypt
-the encrypted file (and re-create `secrets.toml`) run:
+After this step you may delete the `secrets.toml` if you want.
+
+You can now use the variables in your build commands:
+
+```toml
+[build-release]
+commands = [
+   ".cinderella/upload-to-ftp.sh %USERNAME %PASSWORD",
+]
+```
+
+To decrypt the encrypted file (and re-create `secrets.toml`) run:
 
 ```bash
 cinderella decrypt
