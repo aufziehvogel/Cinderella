@@ -1,6 +1,5 @@
 use std::env;
 use std::fs;
-use std::io;
 use std::path::{Path, PathBuf};
 
 use rand::Rng;
@@ -15,7 +14,7 @@ mod mail;
 mod crypto;
 mod variables;
 
-use crate::execution::ExecutionResult;
+use crate::execution::{ExecutionResult, StepResult};
 use crate::vcs::CodeSource;
 use crate::vcs::WorkingCopy;
 
@@ -93,28 +92,29 @@ pub fn run(exec_config: &ExecutionConfig) {
         // TODO: Check if execution was successful. If not and if email is
         // configured, send a mail
         let variables = variables::load(&exec_config.branch);
-        let res = execution::execute(&pipelines, &variables, &mut io::stdout());
+        let res = execution::execute(&pipelines, &variables);
 
         match res {
-            ExecutionResult::BuildError(msg, output, code) => {
-                eprintln!("Build failed: {}\n\n{}", msg, output);
+            ExecutionResult::Error(steps) => {
+                let mut output = String::new();
 
-                let code_msg = match code {
-                    Some(code) => format!("Exited with status code: {}", code),
-                    None => format!("Process terminated by signal")
-                };
+                for step in steps {
+                    match step {
+                        StepResult::Success(command, out)
+                            | StepResult::Error(command, out, _) =>
+                        {
+                            output.push_str(&command);
+                            // TODO: newline should be system-dependent
+                            output.push_str("\n");
+                            output.push_str(&out);
+                        },
+                    }
+                }
+
                 let mailer = mail::build_mailer(&config.email);
                 mailer.send_mail(
                     &exec_config.name(),
-                    &format!("Build failed: {}\n{}\n\n{}", msg, code_msg, output));
-            },
-            ExecutionResult::ExecutionError(msg, output) => {
-                eprintln!("Build failed: {}\n\n{}", msg, output);
-
-                let mailer = mail::build_mailer(&config.email);
-                mailer.send_mail(
-                    &exec_config.name(),
-                    &format!("Build failed: {}\n\n{}", msg, output));
+                    &format!("Build failed:\n\n{}", output));
             },
             _ => (),
         }

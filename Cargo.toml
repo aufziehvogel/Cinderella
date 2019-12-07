@@ -16,6 +16,7 @@ lettre = "0.9"
 lettre_email = "0.9"
 sodiumoxide = "0.2.5"
 rpassword = "4.0"
+duct = "0.13"
 
 [dev-dependencies]
 tempfile = "3"

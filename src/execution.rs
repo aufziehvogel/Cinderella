@@ -1,27 +1,95 @@
 use std::collections::HashMap;
-use std::process::Command;
-use std::io::Write;
+use std::io::{BufRead, BufReader};
 
 use evalexpr;
+use duct::cmd;
 
 use crate::parser;
 use crate::pipeline;
 
 pub enum ExecutionResult {
     NoExecution,
-    Success,
-    // failed command and its output
-    BuildError(String, String, Option<i32>),
-    ExecutionError(String, String),
+    Success(Vec<StepResult>),
+    Error(Vec<StepResult>),
 }
 
-pub fn execute<W: Write>(
+pub enum StepResult {
+    Success(String, String),
+    Error(String, String, Option<i32>),
+}
+
+struct Command {
+    command: String,
+    args: Vec<String>,
+}
+
+impl Command {
+    fn command_string(&self) -> String {
+        let mut command = String::from(&self.command);
+
+        for arg in &self.args {
+            command.push_str(" ");
+
+            if arg.contains(" ") {
+                command.push_str("\"");
+                command.push_str(&arg);
+                command.push_str("\"");
+            } else {
+                command.push_str(&arg);
+            }
+        }
+
+        command
+    }
+
+    fn execute(&self) -> StepResult {
+        let reader = cmd(&self.command, &self.args).stderr_to_stdout()
+            .reader().unwrap();
+        let f = BufReader::new(&reader);
+
+        let mut outtext = String::new();
+
+        for line in f.lines() {
+            match line {
+                Ok(line) => {
+                    println!("{}", line);
+
+                    // TODO: Newline style should be system dependent
+                    outtext.push_str(&line);
+                    outtext.push_str("\n");
+                },
+                _ => {
+                    reader.kill().expect("Could not kill reader");
+                    return StepResult::Error(
+                        self.command_string(),
+                        outtext,
+                        // TODO: How can we get the correct code here?
+                        None
+                    );
+                },
+            }
+        }
+
+        // guaranteed to be Ok(Some(_)) after EOF
+        let output = reader.try_wait().unwrap().unwrap();
+        match output.status.success() {
+            true => StepResult::Success(self.command_string(), outtext),
+            false => {
+                StepResult::Error(
+                    self.command_string(),
+                    outtext,
+                    output.status.code()
+                )
+            },
+        }
+    }
+}
+
+pub fn execute(
     pipelines: &Vec<pipeline::Pipeline>,
-    variables: &HashMap<String, String>,
-    stdout: &mut W) -> ExecutionResult
+    variables: &HashMap<String, String>) -> ExecutionResult
 {
-    // TODO: Refactor this whole function to get a cleaner design
-    let mut executed_at_least_one = false;
+    let mut done_steps = Vec::new();
 
     for pipeline in pipelines {
         let execute = match &pipeline.when {
@@ -32,60 +100,52 @@ pub fn execute<W: Write>(
         };
 
         if execute {
-            executed_at_least_one = true;
-            let res = execute_pipeline(pipeline, &variables, stdout);
+            let res = execute_pipeline(pipeline, &variables);
 
             match res {
-                ExecutionResult::BuildError(_, _, _) | ExecutionResult::ExecutionError(_, _) => {
-                    return res;
-                },
-                _ => (),
+                ExecutionResult::Success(steps) => done_steps.extend(steps),
+                ExecutionResult::Error(_) => return res,
+                ExecutionResult::NoExecution => (),
             }
         }
     }
 
-    if executed_at_least_one {
-        ExecutionResult::Success
+    if done_steps.len() > 0 {
+        ExecutionResult::Success(done_steps)
     } else {
         ExecutionResult::NoExecution
     }
 }
 
-fn execute_pipeline<W: Write>(
+fn execute_pipeline(
     pipeline: &pipeline::Pipeline,
-    variables: &HashMap<String, String>,
-    stdout: &mut W) -> ExecutionResult
+    variables: &HashMap<String, String>) -> ExecutionResult
 {
-    writeln!(stdout, "Executing pipeline \"{}\"\n", pipeline.name).unwrap();
+    let mut step_results = Vec::new();
 
     for cmd in &pipeline.commands {
-        writeln!(stdout, "Step: {}", cmd).unwrap();
-
         let cmd = replace_variables(&cmd, &variables);
         // TODO: Raise error if some variables remain unsubstituted?
-
         let parts = parser::parse_command(&cmd);
-        let output = Command::new(&parts[0])
-            .args(&parts[1..])
-            .output();
-        let output = match output {
-            Ok(output) => output,
-            Err(e) => return ExecutionResult::ExecutionError(cmd, e.to_string()),
+
+        let cmd = Command {
+            command: String::from(&parts[0]),
+            args: parts[1..].to_vec(),
         };
 
-        stdout.write_all(&output.stdout).unwrap();
-
-        let outtext = String::from_utf8(output.stdout.iter().map(|&c| c as u8).collect()).unwrap();
-        if !output.status.success() {
-            return ExecutionResult::BuildError(
-                String::from(format!("Pipeline failed in step: {}", cmd)),
-                outtext,
-                output.status.code()
-            );
+        let result = cmd.execute();
+        match result {
+            StepResult::Success(_, _) => {
+                step_results.push(result);
+            },
+            StepResult::Error(_, _, _) => {
+                step_results.push(result);
+                return ExecutionResult::Error(step_results);
+            },
         }
     }
 
-    ExecutionResult::Success
+    ExecutionResult::Success(step_results)
 }
 
 fn execute_test(test: &str, variables: &HashMap<String, String>) -> bool {
@@ -122,9 +182,25 @@ mod tests {
 
     fn execute_stringout(pipeline: Pipeline,
                          variables: HashMap<String, String>) -> String {
-        let mut stdout = Vec::new();
-        execute(&vec![pipeline], &variables, &mut stdout);
-        String::from_utf8(stdout.iter().map(|&c| c as u8).collect()).unwrap()
+        let res = execute(&vec![pipeline], &variables);
+
+        let mut out = String::new();
+        match res {
+            ExecutionResult::Success(steps)
+                | ExecutionResult::Error(steps) =>
+            {
+                for step in steps {
+                    let text = match step {
+                        StepResult::Success(_command, out) => out,
+                        StepResult::Error(_command, out, _code) => out,
+                    };
+                    out.push_str(&text);
+                }
+            },
+            _ => (),
+        }
+
+        out
     }
 
     #[test]
@@ -138,9 +214,33 @@ mod tests {
 
         let result = execute_stringout(pipeline, variables);
 
-        assert!(result.contains("Executing pipeline \"my-test\""));
         assert!(result.contains("this is my test"));
     }
+
+    #[test]
+    fn test_execute_error_statement() {
+        let pipeline = Pipeline {
+            name: String::from("error-test"),
+            commands: vec!["bash -c \"exit 1\"".to_string()],
+            when: None,
+        };
+        let variables = HashMap::new();
+
+        let result = execute(&vec![pipeline], &variables);
+
+        match result {
+            ExecutionResult::Error(steps) => {
+                if let StepResult::Error(cmd, _out, _code) = &steps[0] {
+                    assert_eq!(cmd, "bash -c \"exit 1\"");
+                } else {
+                    assert!(false);
+                }
+            },
+            // fail if something different from error is returned
+            _ => assert!(false),
+        }
+    }
+
 
     #[test]
     fn test_pipeline_with_variables() {
@@ -169,7 +269,6 @@ mod tests {
 
         let result = execute_stringout(pipeline, variables);
 
-        println!("{}", result);
         assert!(!result.contains("non-master"));
     }
 
@@ -185,7 +284,6 @@ mod tests {
 
         let result = execute_stringout(pipeline, variables);
 
-        println!("{}", result);
         assert!(result.contains("Building master"));
     }
 }
