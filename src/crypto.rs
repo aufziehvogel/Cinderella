@@ -56,18 +56,25 @@ pub fn encrypt_string(plaintext: &str, password: &str) -> Vec<u8> {
 }
 
 pub fn decrypt_file(filepath: &Path, password: &str) -> Result<String, ()> {
-    let r = File::open(filepath).unwrap();
-    let f: CryptoFile = rmp_serde::from_read(r).unwrap();
-    let salted_key = gen_salted_key(password, f.pwsalt);
+    let r = File::open(filepath);
 
-    secretbox::open(&f.content, &f.nonce, &salted_key.key)
-        .map(|bytes| String::from_utf8(bytes).unwrap())
+    match r {
+        Err(_) => Err(()),
+        Ok(r) => {
+            let f: CryptoFile = rmp_serde::from_read(r).unwrap();
+            let salted_key = gen_salted_key(password, f.pwsalt);
+
+            secretbox::open(&f.content, &f.nonce, &salted_key.key)
+                .map(|bytes| String::from_utf8(bytes).unwrap())
+        },
+    }
 }
 
 #[cfg(test)]
 mod tests {
     use super::*;
     use std::io::Write;
+    use std::path::PathBuf;
     use tempfile::NamedTempFile;
 
     #[test]
@@ -84,5 +91,14 @@ mod tests {
         let decrypted = decrypt_file(tmpfile.path(), "my-pass").unwrap();
 
         assert_eq!(plaintext, decrypted);
+    }
+
+    #[test]
+    fn test_decrypt_with_missing_file() {
+        let path = PathBuf::from("/tmp/something/that/does/not/exist");
+
+        let result = decrypt_file(&path, "");
+
+        assert!(result.is_err(), "decrypting missing file should return err");
     }
 }
