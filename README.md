@@ -39,7 +39,9 @@ cinderella run https://github.com/aufziehvogel/Cinderella.git --file /home/user/
 CI Configuration Format
 -----------------------
 
-The *CI configuration file* is a TOML file with one table per build pipeline.
+The *CI configuration file* has to be saved to the root directory of your
+repository as `.cinderella.toml`.
+It is a TOML file with one table per build pipeline.
 Common build pipelines are `test` or `build`. E.g. the following is a valid
 configuration file executing a `test` phase and a `build-release` phase.
 
@@ -61,7 +63,8 @@ desired shell manually.
 
 Pipelines are executed in the order in which they are defined. For the
 given configuration file it is ensured that first `test` is being executed
-followed by `build-release`.
+followed by `build-release`. If an error occurs in any of the pipelines,
+execution will be aborted and the following pipelines will not be executed.
 
 ### Variables
 
