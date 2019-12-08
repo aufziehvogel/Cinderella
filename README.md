@@ -115,6 +115,13 @@ the whole Cinderella configuration file.
 Encrypted Variables
 -------------------
 
+**Warning:** I am not security expert and there has been no analysis regarding
+the security of my implementation. I am using `sodiumoxide` internally, but
+still I could do something wrong. If you want to use this feature on a public
+repository, please review my implementation. I personally only use it for
+internal repositories at the moment. If you find any vulnerabilities in my
+implementation please tell me.
+
 Sometimes a script needs to use credentials that you do not want to store in
 a version control system in plaintext. For this use case, Cinderella supports
 the storage of variables in an encrypted file. This file has to be

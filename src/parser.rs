@@ -12,6 +12,7 @@ pub fn parse_command(command: &str) -> Vec<String> {
             if c == '"' {
                 parts.push(String::from(&command[start_idx..i]));
                 in_quotes = false;
+                start_idx = i + 1;
             }
         } else {
             if c == '\\' && !next_char_escaped {
@@ -52,6 +53,7 @@ mod tests {
     fn test_parse_simple_command() {
         let result = parse_command("program execute something");
 
+        assert_eq!(result.len(), 3);
         assert_eq!(result[0], "program");
         assert_eq!(result[1], "execute");
         assert_eq!(result[2], "something");
@@ -61,6 +63,7 @@ mod tests {
     fn test_parse_command_with_quoted_args() {
         let result = parse_command("program \"execute something\" and \"something else\"");
 
+        assert_eq!(result.len(), 4);
         assert_eq!(result[0], "program");
         assert_eq!(result[1], "execute something");
         assert_eq!(result[2], "and");
@@ -71,14 +74,26 @@ mod tests {
     fn test_parse_command_with_spaced_arg() {
         let result = parse_command("program execute\\ something");
 
+        assert_eq!(result.len(), 2);
         assert_eq!(result[0], "program");
         assert_eq!(result[1], "execute something");
+    }
+
+    #[test]
+    fn test_bash_command() {
+        let result = parse_command("bash -c \"exit 1\"");
+
+        assert_eq!(result.len(), 3);
+        assert_eq!(result[0], "bash");
+        assert_eq!(result[1], "-c");
+        assert_eq!(result[2], "exit 1");
     }
 
     #[test]
     fn test_parse_virtualenv_tox_command() {
         let result = parse_command("bash -c \"virtualenv env && source env/bin/activate && tox\"");
 
+        assert_eq!(result.len(), 3);
         assert_eq!(result[0], "bash");
         assert_eq!(result[1], "-c");
         assert_eq!(result[2], "virtualenv env && source env/bin/activate && tox");
