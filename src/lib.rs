@@ -14,35 +14,12 @@ mod mail;
 mod crypto;
 mod variables;
 
+pub use crate::config::ExecutionConfig;
+
+use crate::config::{CinderellaConfig, Configs};
 use crate::execution::{ExecutionResult, StepResult};
 use crate::vcs::CodeSource;
 use crate::vcs::WorkingCopy;
-
-pub struct ExecutionConfig {
-    pub repo_url: String,
-    pub branch: Option<String>,
-    pub cinderella_filepath: Option<String>,
-}
-
-impl ExecutionConfig {
-    // TODO: This approach only works for URLs, not for local paths.
-    fn name(&self) -> String {
-        self.repo_url.split('/').last().unwrap().to_string()
-    }
-
-    fn cinderella_file(&self, folder: &PathBuf) -> PathBuf {
-        let filepath = match &self.cinderella_filepath {
-            Some(filepath) => PathBuf::from(filepath),
-            None => {
-                let mut cinderella_file = folder.clone();
-                cinderella_file.push(".cinderella.toml");
-                cinderella_file
-            },
-        };
-
-        filepath
-    }
-}
 
 fn random_dir(base_path: &str) -> PathBuf {
     let mut tempdir = PathBuf::from(base_path);
@@ -65,7 +42,11 @@ fn appconfig_file() -> PathBuf {
 }
 
 pub fn run(exec_config: &ExecutionConfig) {
-    let config = config::read_config(appconfig_file());
+    let cinderella_config = CinderellaConfig::from_file(appconfig_file());
+    let configs = Configs {
+        cinderella_config: &cinderella_config,
+        execution_config: exec_config,
+    };
 
     let repo = vcs::GitSource {
         src: exec_config.repo_url.clone(),
@@ -91,7 +72,7 @@ pub fn run(exec_config: &ExecutionConfig) {
     if let Some(pipelines) = pipeline::load_pipeline(&cinderella_file) {
         // TODO: Check if execution was successful. If not and if email is
         // configured, send a mail
-        let variables = variables::load(&exec_config.branch);
+        let variables = variables::load(&workdir.path, &configs);
         let res = execution::execute(&pipelines, &variables);
 
         match res {
@@ -111,7 +92,7 @@ pub fn run(exec_config: &ExecutionConfig) {
                     }
                 }
 
-                let mailer = mail::build_mailer(&config.email);
+                let mailer = mail::build_mailer(&cinderella_config.email);
                 mailer.send_mail(
                     &exec_config.name(),
                     &format!("Build failed:\n\n{}", output));
