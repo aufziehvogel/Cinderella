@@ -6,9 +6,9 @@ commands = [
 [build-release]
 commands = [
     "cargo build --release",
-    "cp target/release/cinderella /opt/cinderella/.cinderella-%BRANCH",
+    "cp target/release/cinderella /opt/cinderella/.cinderella",
     # use -f on deletion to avoid errors if file does not exist
-    "rm -f /opt/cinderella/cinderella-%BRANCH",
-    "mv /opt/cinderella/.cinderella-%BRANCH /opt/cinderella/cinderella-%BRANCH",
+    "rm -f /opt/cinderella/cinderella",
+    "mv /opt/cinderella/.cinderella /opt/cinderella/cinderella",
 ]
 when = "\"%BRANCH\" == \"master\""
