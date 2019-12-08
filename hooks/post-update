@@ -12,4 +12,4 @@ source /home/$user/.bash_profile
 branch=$(basename "$1")
 echo "Will build branch $branch"
 
-nohup /opt/cinderella/cinderella "$PWD" --branch "$branch" &>/dev/null &
+nohup /opt/cinderella/cinderella run "$PWD" --branch "$branch" &>/dev/null &
