@@ -17,8 +17,8 @@ fn main() {
         Some(command) => {
             match command.as_ref() {
                 "run" => run(args),
-                "encrypt" => encrypt(),
-                "decrypt" => decrypt(),
+                "encrypt" => encrypt(args),
+                "decrypt" => decrypt(args),
                 _ => println!("Unknown command!"),
             }
         },
@@ -26,15 +26,31 @@ fn main() {
     }
 }
 
-fn encrypt() {
-    let pass = rpassword::read_password_from_tty(Some("Password: ")).unwrap();
+fn parse_password_arg(args: Vec<String>) -> Option<String> {
+    let mut opts = Options::new();
+    opts.optopt("p", "password", "set the password for encryption/decryption", "PASSWORD");
+
+    match opts.parse(&args[2..]) {
+        Ok(m) => m.opt_str("p"),
+        Err(f) => panic!(f.to_string()),
+    }
+}
+
+fn encrypt(args: Vec<String>) {
+    let pass = match parse_password_arg(args) {
+        Some(pass) => pass,
+        None => rpassword::read_password_from_tty(Some("Password: ")).unwrap(),
+    };
 
     cinderella::encrypt(Path::new(".cinderella/secrets.toml"),
         Path::new(".cinderella/secrets"), &pass);
 }
 
-fn decrypt() {
-    let pass = rpassword::read_password_from_tty(Some("Password: ")).unwrap();
+fn decrypt(args: Vec<String>) {
+    let pass = match parse_password_arg(args) {
+        Some(pass) => pass,
+        None => rpassword::read_password_from_tty(Some("Password: ")).unwrap(),
+    };
 
     cinderella::decrypt(Path::new(".cinderella/secrets"),
         Path::new(".cinderella/secrets.toml"), &pass);
