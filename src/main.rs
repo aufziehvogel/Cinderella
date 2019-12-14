@@ -11,6 +11,10 @@ fn print_usage(program: &str, opts: Options) {
 }
 
 fn main() {
+    const NAME: &'static str = env!("CARGO_PKG_NAME");
+    const VERSION: &'static str = env!("CARGO_PKG_VERSION");
+    println!("{} v{}", NAME, VERSION);
+
     let args: Vec<String> = env::args().collect();
 
     match args.get(1) {
