@@ -14,9 +14,10 @@ name=$(basename "$1")
 
 if [ "$reftype" = "heads" ]; then
     echo "Will build branch $name"
-    nohup /opt/cinderella/cinderella run "$PWD" --branch "$branch" &>/dev/null &
+    nohup /opt/cinderella/cinderella run "$PWD" --branch "$name" &>/dev/null &
 elif [ "$reftype" = "tags" ]; then
-    echo "tags not implemented, yet"
+    echo "Will build tag $name"
+    nohup /opt/cinderella/cinderella run "$PWD" --tag "$name" &>/dev/null &
 else
     echo "Unknown ref type: $1"
 fi
