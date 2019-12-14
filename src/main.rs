@@ -61,6 +61,7 @@ fn run(args: Vec<String>) {
 
     let mut opts = Options::new();
     opts.optopt("b", "branch", "set the branch to checkout", "BRANCH");
+    opts.optopt("t", "tag", "set the tag to checkout", "TAG");
     opts.optopt("f", "file", "set a file to the cinderella CI configuration", "FILEPATH");
 
     let matches = match opts.parse(&args[2..]) {
@@ -78,6 +79,7 @@ fn run(args: Vec<String>) {
     let repo = ExecutionConfig {
         repo_url: repository_url,
         branch: matches.opt_str("b"),
+        tag: matches.opt_str("t"),
         cinderella_filepath: matches.opt_str("f"),
     };
 

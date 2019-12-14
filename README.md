@@ -26,6 +26,12 @@ git repository and optionally the name of the branch you want to build:
 cinderella run https://github.com/aufziehvogel/Cinderella.git --branch master
 ```
 
+You can also build a specific tag with:
+
+```bash
+cinderella run https://github.com/aufziehvogel/Cinderella.git --tag 0.1.0
+```
+
 You can use a different path than `.cinderella.toml` for your CI configuration
 file with the argument `-f` or `--file`. This argument is evaluated relatively
 to the git work directory. If you want to use a CI configuration file local
@@ -73,7 +79,10 @@ with a percentage symbol (`%`) and will be replaced before the commands
 are being sent to the shell.
 Currently supported variables are:
 
-- `%BRANCH`: The name of the branch that is built
+- `%REFTYPE`: The type of reference that is built, `branch` or `tag`
+- `%BRANCH`: The name of the branch that is built, if it is a branch
+- `%TAG`: The name of the tag that is built, if it is a tag
+
 
 ### Conditions
 

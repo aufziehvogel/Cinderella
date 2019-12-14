@@ -46,6 +46,7 @@ impl CinderellaConfig {
 pub struct ExecutionConfig {
     pub repo_url: String,
     pub branch: Option<String>,
+    pub tag: Option<String>,
     pub cinderella_filepath: Option<String>,
 }
 
@@ -125,6 +126,7 @@ mod tests {
         let exec_config = ExecutionConfig {
             repo_url: String::from("https://example.com/my-repo.git"),
             branch: Some(String::from("master")),
+            tag: None,
             cinderella_filepath: None,
         };
 

@@ -3,7 +3,8 @@ commands = [
     "cargo test",
 ]
 
-[build-release]
+[build-master]
+# Always build the latest master for usage on my server
 commands = [
     "cargo build --release",
     "cp target/release/cinderella /opt/cinderella/.cinderella",
@@ -12,3 +13,10 @@ commands = [
     "mv /opt/cinderella/.cinderella /opt/cinderella/cinderella",
 ]
 when = "\"%BRANCH\" == \"master\""
+
+[build-release]
+commands = [
+    "cargo build --release",
+    "cp target/release/cinderella \"/opt/cinderella/cinderella-%TAG\"",
+]
+when = "\"%REFTYPE\" == \"tag\""

@@ -19,7 +19,12 @@ fn load_internal(configs: &Configs) -> HashMap<String, String> {
     let mut variables = HashMap::new();
 
     if let Some(branch) = &configs.execution_config.branch {
+        variables.insert("reftype".to_string(), "branch".to_string());
         variables.insert("branch".to_string(), branch.to_string());
+    }
+    if let Some(tag) = &configs.execution_config.tag {
+        variables.insert("reftype".to_string(), "tag".to_string());
+        variables.insert("tag".to_string(), tag.to_string());
     }
 
     variables

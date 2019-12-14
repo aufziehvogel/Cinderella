@@ -11,6 +11,7 @@ pub trait CodeSource {
 
 pub trait WorkingCopy {
     fn checkout_branch(&self, branch: &str);
+    fn checkout_tag(&self, tag: &str);
 }
 
 pub struct GitSource {
@@ -39,6 +40,11 @@ impl CodeSource for GitSource {
 impl WorkingCopy for GitWorkingCopy {
     fn checkout_branch(&self, branch_name: &str) {
         let revname = format!("refs/remotes/origin/{}", branch_name);
+        self.checkout_rev(&revname);
+    }
+
+    fn checkout_tag(&self, tag_name: &str) {
+        let revname = format!("refs/tags/{}", tag_name);
         self.checkout_rev(&revname);
     }
 }

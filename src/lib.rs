@@ -62,6 +62,9 @@ pub fn run(exec_config: &ExecutionConfig) {
     if let Some(branch) = &exec_config.branch {
         println!("Switching to branch {}", branch);
         workdir.checkout_branch(&branch);
+    } else if let Some(tag) = &exec_config.tag {
+        println!("Switching to tag {}", tag);
+        workdir.checkout_tag(&tag);
     }
 
     // Switch to the exported work dir so that all commands
