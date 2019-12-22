@@ -201,6 +201,10 @@ Open Points
 
 This is a list of open points that are subject to implementation:
 
+- allow cinderella to `run` with a non-git folder: Logic should be so that
+  user passes a URL or a path to `run` (same as now) and Cinderella checks
+  if this is a URL, a local git repository or a local folder without git and
+  then runs the correct `Source` and `WorkingCopy`
 - introduce command shortcuts for commands that are often used but annoying
   to write in their full form
   - `"[bash] foo && bar"` for `"bash -c \"foo && bar\""`
