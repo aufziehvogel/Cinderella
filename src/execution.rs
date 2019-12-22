@@ -1,5 +1,6 @@
 use std::collections::HashMap;
 use std::io::{BufRead, BufReader};
+use std::env;
 
 use evalexpr;
 use duct::cmd;
@@ -171,8 +172,23 @@ fn replace_variables(command: &str, variables: &HashMap<String, String>)
         res = res.replace(&varname, replacement);
     }
 
+    let res = replace_envvars(&res);
+
     res
 }
+
+fn replace_envvars(command: &str) -> String
+{
+    let mut res = String::from(command);
+
+    for (key, value) in env::vars() {
+        let varname = format!("${}", key.to_uppercase());
+        res = res.replace(&varname, &value);
+    }
+
+    res
+}
+
 
 #[cfg(test)]
 mod tests {

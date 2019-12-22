@@ -83,6 +83,15 @@ Currently supported variables are:
 - `%BRANCH`: The name of the branch that is built, if it is a branch
 - `%TAG`: The name of the tag that is built, if it is a tag
 
+### Environment Variables
+
+It is possible to use environment variables in your commands, e.g.
+`commands = ["echo $HOME"]`. Cinderella will substitute them by their
+values before the command gets sent to the operating system.
+
+This is also true if you use `bash` or other shells in your commands list.
+This means that in such cases the plaintext value of the environment
+variable will be visible in your shell history.
 
 ### Conditions
 
@@ -197,8 +206,6 @@ This is a list of open points that are subject to implementation:
   - `"[bash] foo && bar"` for `"bash -c \"foo && bar\""`
   - `"[python-venv env] pip install -r requirements.txt && ./foo"` for
     `"bash -c \"source env/bin/activate && pip install -r requirements.txt && ./foo\""`
-- substitute important environment variables like `$HOME` so that we do not
-  have to run a bash in order to use them (or all environment variables?)
 - keep a status of the last result per repository (to send *OK again* mails)
 - send a more detailed error message on the build error reason:
   - return code of the failed command

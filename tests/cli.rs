@@ -38,3 +38,31 @@ fn test_encrypt_decrypt() {
 
     assert_eq!("MY_SECRET = \"secret\"", res.trim());
 }
+
+#[test]
+fn test_environment_variables_get_replaced() {
+    let dir = tempfile::tempdir().unwrap();
+    let cinderella_file = dir.path().join(".cinderella.toml");
+
+    let mut file = File::create(&cinderella_file).unwrap();
+    writeln!(file, "[test]\ncommands = [\"echo $MY_ENV_VAR\"]").unwrap();
+
+    // Create a git repo, TODO: Would be nicer if we could run cinderella
+    // also on folders without having a git repo
+    Command::new("git")
+        .arg("init")
+        .current_dir(&dir)
+        .output()
+        .expect("Creation of git repo failed");
+
+    let output = Command::cargo_bin("cinderella").unwrap()
+        .args(vec!["run", "-f", &cinderella_file.to_string_lossy(), "."])
+        .current_dir(&dir)
+        .env("MY_ENV_VAR", "test-env-var")
+        .output()
+        .expect("Execution failed");
+
+    let stdout = String::from_utf8_lossy(&output.stdout);
+
+    assert!(stdout.contains("test-env-var"));
+}
