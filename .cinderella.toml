@@ -16,6 +16,9 @@ when = "\"%BRANCH\" == \"master\""
 
 [build-release]
 commands = [
+    # set the tag number as tool version
+    "sed -i -e 's/^version = .*/version = \"%TAG\"/' Cargo.toml",
+
     "cargo build --release",
     "cp target/release/cinderella \"/opt/cinderella/cinderella-%TAG\"",
 ]

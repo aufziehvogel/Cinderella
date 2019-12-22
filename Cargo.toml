@@ -1,6 +1,7 @@
 [package]
 name = "cinderella"
-version = "0.1.0"
+# version is automatically set in the build pipeline
+version = "dev"
 authors = ["Stefan Koch <programming@stefan-koch.name>"]
 edition = "2018"
 
