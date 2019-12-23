@@ -26,19 +26,16 @@ struct Command {
 
 impl Command {
     fn command_string(&self) -> String {
-        let mut command = String::from(&self.command);
+        let mut parts = self.args.clone();
+        parts.insert(0, String::from(&self.command));
 
-        for arg in &self.args {
-            command.push_str(" ");
-
+        let command = parts.iter().map(|arg| {
             if arg.contains(" ") {
-                command.push_str("\"");
-                command.push_str(&arg);
-                command.push_str("\"");
+                format!("\"{}\"", arg)
             } else {
-                command.push_str(&arg);
+                String::from(arg)
             }
-        }
+        }).collect::<Vec<String>>().join(" ");
 
         command
     }
@@ -122,33 +119,39 @@ fn execute_pipeline(
     pipeline: &pipeline::Pipeline,
     variables: &HashMap<String, String>) -> ExecutionResult
 {
-    let mut step_results = Vec::new();
+    let res = pipeline.commands.iter()
+        .try_fold(Vec::<StepResult>::new(), |mut step_results, cmd| {
+            let result = execute_step(&cmd, variables);
 
-    for cmd in &pipeline.commands {
-        let cmd = replace_variables(&cmd, &variables);
-        // TODO: Raise error if some variables remain unsubstituted?
-        let parts = parser::parse_command(&cmd);
+            match result {
+                StepResult::Success(_, _) => {
+                    step_results.push(result);
+                    Ok(step_results)
+                },
+                StepResult::Error(_, _, _) => {
+                    step_results.push(result);
+                    Err(step_results)
+                }
+            }
+        });
 
-        let cmd = Command {
-            command: String::from(&parts[0]),
-            args: parts[1..].to_vec(),
-        };
-
-        let result = cmd.execute();
-        match result {
-            StepResult::Success(_, _) => {
-                step_results.push(result);
-            },
-            StepResult::Error(_, _, _) => {
-                step_results.push(result);
-                return ExecutionResult::Error(step_results);
-            },
-        }
+    match res {
+        Ok(step_results) => ExecutionResult::Success(step_results),
+        Err(step_results) => ExecutionResult::Error(step_results),
     }
-
-    ExecutionResult::Success(step_results)
 }
 
+fn execute_step(cmd: &str, variables: &HashMap<String, String>) -> StepResult {
+    let cmd = replace_variables(&cmd, &variables);
+    let parts = parser::parse_command(&cmd);
+
+    let cmd = Command {
+        command: String::from(&parts[0]),
+        args: parts[1..].to_vec(),
+    };
+
+    cmd.execute()
+}
 fn execute_test(test: &str, variables: &HashMap<String, String>) -> bool {
     // not possible to use evalexpr Context, because evalexpr only handles
     // standard variable names without special characters (percentage
