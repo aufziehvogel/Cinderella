@@ -1,12 +1,17 @@
 use std::env;
 use std::path::Path;
+use std::process;
 
 use rpassword;
 use getopts::Options;
 use cinderella::ExecutionConfig;
 
-fn print_usage(program: &str, opts: Options) {
-    let brief = format!("Usage: {} REPO_URL [options]", program);
+fn print_usage(program: &str) {
+    println!("Usage: {} (run | encrypt | decrypt)", program);
+}
+
+fn print_usage_command(program: &str, argline: &str, opts: Options) {
+    let brief = format!("Usage: {} {}", program, argline);
     print!("{}", opts.usage(&brief));
 }
 
@@ -16,6 +21,7 @@ fn main() {
     println!("{} v{}", NAME, VERSION);
 
     let args: Vec<String> = env::args().collect();
+    let program = args[0].clone();
 
     match args.get(1) {
         Some(command) => {
@@ -23,25 +29,41 @@ fn main() {
                 "run" => run(args),
                 "encrypt" => encrypt(args),
                 "decrypt" => decrypt(args),
-                _ => println!("Unknown command!"),
+                "--help" | "-h" => print_usage(&program),
+                _ => {
+                    println!("Unknown command!");
+                    print_usage(&program);
+                },
             }
         },
-        None => println!("Please provide a command"),
+        None => {
+            println!("Please provide a command");
+            print_usage(&program);
+        },
     }
 }
 
-fn parse_password_arg(args: Vec<String>) -> Option<String> {
-    let mut opts = Options::new();
-    opts.optopt("p", "password", "set the password for encryption/decryption", "PASSWORD");
-
+fn parse_password_arg(opts: &Options, args: Vec<String>)
+    -> Result<Option<String>, String>
+{
     match opts.parse(&args[2..]) {
-        Ok(m) => m.opt_str("p"),
-        Err(f) => panic!(f.to_string()),
+        Ok(m) => Ok(m.opt_str("p")),
+        Err(f) => Err(f.to_string()),
     }
 }
 
 fn encrypt(args: Vec<String>) {
-    let pass = match parse_password_arg(args) {
+    let mut opts = Options::new();
+    opts.optopt("p", "password", "set the password for encryption/decryption", "PASSWORD");
+
+    let pass_or_none = parse_password_arg(&opts, args)
+        .unwrap_or_else(|msg| {
+            println!("{}", msg);
+            print_usage_command("cinderella", "encrypt [options]", opts);
+            process::exit(1);
+        });
+
+    let pass = match pass_or_none {
         Some(pass) => pass,
         None => rpassword::read_password_from_tty(Some("Password: ")).unwrap(),
     };
@@ -51,7 +73,17 @@ fn encrypt(args: Vec<String>) {
 }
 
 fn decrypt(args: Vec<String>) {
-    let pass = match parse_password_arg(args) {
+    let mut opts = Options::new();
+    opts.optopt("p", "password", "set the password for encryption/decryption", "PASSWORD");
+
+    let pass_or_none = parse_password_arg(&opts, args)
+        .unwrap_or_else(|msg| {
+            println!("{}", msg);
+            print_usage_command("cinderella", "decrypt [options]", opts);
+            process::exit(1);
+        });
+
+    let pass = match pass_or_none {
         Some(pass) => pass,
         None => rpassword::read_password_from_tty(Some("Password: ")).unwrap(),
     };
@@ -70,13 +102,17 @@ fn run(args: Vec<String>) {
 
     let matches = match opts.parse(&args[2..]) {
         Ok(m) => { m },
-        Err(f) => { panic!(f.to_string()) },
+        Err(f) => {
+            println!("{}", f.to_string());
+            print_usage_command(&program, "run [options] REPO", opts);
+            process::exit(1);
+        },
     };
 
     let repository_url = if !matches.free.is_empty() {
         matches.free[0].clone()
     } else {
-        print_usage(&program, opts);
+        print_usage(&program);
         return;
     };
 
@@ -87,5 +123,6 @@ fn run(args: Vec<String>) {
         cinderella_filepath: matches.opt_str("f"),
     };
 
+    // TODO: Handle error from cinderella:run and display error message + usage
     cinderella::run(&repo)
 }
