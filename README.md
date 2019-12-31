@@ -215,3 +215,6 @@ This is a list of open points that are subject to implementation:
   - return code of the failed command
   - full log of the executed commands (in a prompt style, command followed by
     output)
+- send a mail with all compiler warnings? (or optionally to be
+  enabled/disabled in .cinderella.toml?); otherwise developers never see the
+  warnings
