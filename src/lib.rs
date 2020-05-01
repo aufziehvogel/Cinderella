@@ -140,6 +140,8 @@ fn write_build_status(status: BuildStatus, exec_config: &ExecutionConfig, cinder
     if let Some(dashboard) = &cinderella_config.dashboard {
         let project = &exec_config.name();
         let outdir = PathBuf::from(&dashboard.folder);
-        dashboard::generate_status_icon(project, &branch, status, &outdir)
+        if let Err(msg) = dashboard::generate_status_icon(project, &branch, status, &outdir) {
+            eprintln!("Could not write status badge: {}", msg);
+        }
     }
 }

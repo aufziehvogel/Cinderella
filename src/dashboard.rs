@@ -10,23 +10,31 @@ pub enum BuildStatus {
 static ICON_SUCCESS: &'static [u8] = include_bytes!("../assets/icon_build_success.png");
 static ICON_ERROR: &'static [u8] = include_bytes!("../assets/icon_build_error.png");
 
-pub fn generate_status_icon(project: &str, branch: &str, status: BuildStatus, dir: &PathBuf) {
+pub fn generate_status_icon(project: &str, branch: &str, status: BuildStatus, dir: &PathBuf) -> Result<(), String> {
     let mut path = dir.clone();
     path.push(project);
 
     // ignore the AlreadyExists error
     // other errors are also not important, because
     // we recognize them once the file cannot be written
-    let _ = fs::create_dir(path.clone());
+    if let Err(msg) = fs::create_dir(path.clone()) {
+        return Err(format!("{}", msg));
+    }
 
     path.push(format!("{}.png", branch));
 
     // TODO: Error handling
     let mut buffer = File::create(path).unwrap();
-    match status {
-        BuildStatus::Success => buffer.write(ICON_SUCCESS).expect("Could not write to file"),
-        BuildStatus::Error(_) => buffer.write(ICON_ERROR).expect("Could not write to file"),
+    let result = match status {
+        BuildStatus::Success => buffer.write(ICON_SUCCESS),
+        BuildStatus::Error(_) => buffer.write(ICON_ERROR),
     };
+
+    if let Err(msg) = result {
+        return Err(format!("{}", msg));
+    }
+
+    Ok(())
 }
 
 #[cfg(test)]
@@ -39,7 +47,7 @@ mod tests {
         let dir = tempfile::tempdir().unwrap();
         let pathbuf = dir.path().to_path_buf();
 
-        generate_status_icon("myproject", "master", BuildStatus::Success, &pathbuf);
+        generate_status_icon("myproject", "master", BuildStatus::Success, &pathbuf).unwrap();
 
         let mut buf = dir.path().to_path_buf();
         buf.push("myproject");
@@ -58,7 +66,7 @@ mod tests {
         let dir = tempfile::tempdir().unwrap();
         let pathbuf = dir.path().to_path_buf();
 
-        generate_status_icon("my-other-project", "some-branch", BuildStatus::Error("Error Reason".to_string()), &pathbuf);
+        generate_status_icon("my-other-project", "some-branch", BuildStatus::Error("Error Reason".to_string()), &pathbuf).unwrap();
 
         let mut buf = dir.path().to_path_buf();
         buf.push("my-other-project");
