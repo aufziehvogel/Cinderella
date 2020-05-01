@@ -8,6 +8,13 @@ It is designed for people who do not want to work with big solutions like
 Gitlab or Jenkins and probably also work with standard *bare* git repositories
 (instead of Gitlab, gitea or similar).
 
+Cinderella is a single binary that currently executes all builds directly
+on the same machine. Positive: It ships as a single binary with dependencies
+only to standard libraries like libc. It does not require Docker or similar.
+Negative: Testing with a clean, bare OS is currently not in focus. It's
+probably possible by starting up a fresh VM, copying cinderella onto it and
+then executing it, but it's more effort on your side.
+
 
 Usage
 -----
