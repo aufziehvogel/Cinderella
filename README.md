@@ -198,6 +198,21 @@ repository in cleartext, but as soon as your server is compromised all your
 credentials are compromised.
 
 
+Badges
+------
+
+It's possible to generate build success/failure badges that can be displayed
+on websites. To enable this feature add the following configuration:
+
+```toml
+[dashboard]
+folder = "/var/www/cinderella"
+```
+
+The build process will then write the badges into `folder`. Serving the data
+via HTTP is your own responsibility, use any web server of your choice.
+
+
 Open Points
 -----------
 
