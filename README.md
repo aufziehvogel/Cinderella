@@ -1,6 +1,8 @@
 Cinderella CI
 =============
 
+Build Status: ![Build Status according to Cinderella CI Build](http://cinderella.stefan-koch.name/cinderella.git/master.png)
+
 Cinderella CI is a simple Continuous Integration solution for git repositories.
 It is designed for people who do not want to work with big solutions like
 Gitlab or Jenkins and probably also work with standard *bare* git repositories
