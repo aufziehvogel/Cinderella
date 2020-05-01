@@ -13,6 +13,7 @@ mod execution;
 mod mail;
 mod crypto;
 mod variables;
+mod dashboard;
 
 pub use crate::config::ExecutionConfig;
 
@@ -20,6 +21,7 @@ use crate::config::{CinderellaConfig, Configs};
 use crate::execution::{ExecutionResult, StepResult};
 use crate::vcs::CodeSource;
 use crate::vcs::WorkingCopy;
+use crate::dashboard::BuildStatus;
 
 fn random_dir(base_path: &str) -> PathBuf {
     let mut tempdir = PathBuf::from(base_path);
@@ -79,6 +81,9 @@ pub fn run(exec_config: &ExecutionConfig) {
         let res = execution::execute(&pipelines, &variables);
 
         match res {
+            ExecutionResult::Success(_) => {
+                write_build_status(BuildStatus::Success, exec_config, &cinderella_config);
+            },
             ExecutionResult::Error(steps) => {
                 let mut output = String::new();
 
@@ -99,6 +104,8 @@ pub fn run(exec_config: &ExecutionConfig) {
                 mailer.send_mail(
                     &exec_config.name(),
                     &format!("Build failed:\n\n{}", output));
+
+                write_build_status(BuildStatus::Error("Build failed".to_string()), exec_config, &cinderella_config);
             },
             _ => (),
         }
@@ -121,5 +128,18 @@ pub fn decrypt(cipherpath: &Path, plainpath: &Path, password: &str) {
             fs::write(plainpath, plaintext).expect("Unable to write file");
         },
         _ => println!("Cannot decrypt, probably wrong password"),
+    }
+}
+
+fn write_build_status(status: BuildStatus, exec_config: &ExecutionConfig, cinderella_config: &CinderellaConfig) {
+    let branch = match &exec_config.branch {
+        Some(branch) => branch,
+        None => "master",
+    };
+    
+    if let Some(dashboard) = &cinderella_config.dashboard {
+        let project = &exec_config.name();
+        let outdir = PathBuf::from(&dashboard.folder);
+        dashboard::generate_status_icon(project, &branch, status, &outdir)
     }
 }

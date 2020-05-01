@@ -13,6 +13,7 @@ pub struct Configs<'a> {
 pub struct CinderellaConfig {
     pub email: Option<Email>,
     pub secrets: Option<Secrets>,
+    pub dashboard: Option<Dashboard>,
 }
 
 #[derive(Deserialize, Debug)]
@@ -29,6 +30,11 @@ pub struct Secrets {
     pub password: String,
 }
 
+#[derive(Deserialize, Debug)]
+pub struct Dashboard {
+    pub folder: String,
+}
+
 impl CinderellaConfig {
     pub fn from_file(path: PathBuf) -> CinderellaConfig {
         match fs::read_to_string(path) {
@@ -38,6 +44,7 @@ impl CinderellaConfig {
             _ => CinderellaConfig {
                 email: None,
                 secrets: None,
+                dashboard: None,
             }
         }
     }
@@ -92,6 +99,9 @@ mod tests {
             password = "s"
             to = "to@example.com"
             from = "from@example.com"
+
+            [dashboard]
+            folder = "/var/www/cinderella"
         "#;
         let mut tmpfile = NamedTempFile::new().unwrap();
         let f = tmpfile.as_file_mut();
@@ -105,6 +115,9 @@ mod tests {
         assert_eq!(email.password, "s");
         assert_eq!(email.to, "to@example.com");
         assert_eq!(email.from, "from@example.com");
+
+        let dashboard = config.dashboard.unwrap();
+        assert_eq!(dashboard.folder, "/var/www/cinderella");
     }
 
     #[test]
