@@ -59,6 +59,7 @@ pub struct ExecutionConfig {
 
 impl ExecutionConfig {
     // TODO: This approach only works for URLs, not for local paths.
+    // TODO: Move the name() function to the CodeSource
     pub fn name(&self) -> String {
         self.repo_url.split('/').last().unwrap().to_string()
     }
@@ -150,7 +151,5 @@ mod tests {
             secrets_file,
             PathBuf::from("/tmp/work-dir/.cinderella/secrets")
         );
-
-
     }
 }
