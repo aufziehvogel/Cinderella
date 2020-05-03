@@ -243,6 +243,10 @@ Open Points
 
 This is a list of open points that are subject to implementation:
 
+- add more system tests
+- improve stability and error messages (sometimes I receive a rust crash
+  due to a failed expect/unwrap)
+- keep a status of the last result per repository (to send *OK again* mails)
 - allow cinderella to `run` with a non-git folder: Logic should be so that
   user passes a URL or a path to `run` (same as now) and Cinderella checks
   if this is a URL, a local git repository or a local folder without git and
@@ -252,11 +256,6 @@ This is a list of open points that are subject to implementation:
   - `"[bash] foo && bar"` for `"bash -c \"foo && bar\""`
   - `"[python-venv env] pip install -r requirements.txt && ./foo"` for
     `"bash -c \"source env/bin/activate && pip install -r requirements.txt && ./foo\""`
-- keep a status of the last result per repository (to send *OK again* mails)
-- send a more detailed error message on the build error reason:
-  - return code of the failed command
-  - full log of the executed commands (in a prompt style, command followed by
-    output)
 - send a mail with all compiler warnings? (or optionally to be
   enabled/disabled in .cinderella.toml?); otherwise developers never see the
   warnings
