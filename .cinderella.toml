@@ -6,11 +6,8 @@ commands = [
 [build-master]
 # Always build the latest master for usage on my server
 commands = [
-    "cargo build --release",
-    "cp target/release/cinderella /opt/cinderella/.cinderella",
-    # use -f on deletion to avoid errors if file does not exist
-    "rm -f /opt/cinderella/cinderella",
-    "mv /opt/cinderella/.cinderella /opt/cinderella/cinderella",
+    "make",
+    "make install",
 ]
 when = "\"%BRANCH\" == \"master\""
 
@@ -19,7 +16,7 @@ commands = [
     # set the tag number as tool version
     "sed -i -e 's/^version = .*/version = \"%TAG\"/' Cargo.toml",
 
-    "cargo build --release",
+    "make",
     "cp target/release/cinderella \"/opt/cinderella/cinderella-%TAG\"",
 ]
 when = "\"%REFTYPE\" == \"tag\""
