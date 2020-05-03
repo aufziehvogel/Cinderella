@@ -51,6 +51,24 @@ cinderella run https://github.com/aufziehvogel/Cinderella.git --file /home/user/
 ```
 
 
+Configuration Files
+-------------------
+
+Cinderella uses two configuration files:
+
+- **CI Configuration File**: The CI configuration file is usually called
+  `.cinderella.toml` and belongs to the project
+  that should be built. It defines under which circumstances Cinderella should
+  build the project (e.g. only tags, only specific branches) and which
+  commands the Cinderella engine has to execute to run the build. Without
+  this file, Cinderella will not run a build for the project.
+- **Cinderella Configuration File**: The Cinderella configuration file belongs
+  to your Cinderella instance. It is usually called `config.toml` and is
+  located in the same folder as your Cinderella executable. It specifies
+  parameters that Cinderella needs to perform actions like sending e-mails,
+  writing output files or decrypting secrets. This file is optional.
+
+
 CI Configuration Format
 -----------------------
 
