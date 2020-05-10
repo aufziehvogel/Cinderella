@@ -22,14 +22,14 @@ pub fn generate_status_icon(project: &str, branch: &str, status: BuildStatus, di
     path.push(format!("{}.png", branch));
 
     // TODO: Error handling
-    let mut buffer = File::create(path).unwrap();
+    let mut buffer = File::create(path.clone()).unwrap();
     let result = match status {
         BuildStatus::Success => buffer.write(ICON_SUCCESS),
         BuildStatus::Error(_) => buffer.write(ICON_ERROR),
     };
 
     if let Err(msg) = result {
-        return Err(format!("{}", msg));
+        return Err(format!("{}, File: {}", msg, path.to_string_lossy()));
     }
 
     Ok(())
