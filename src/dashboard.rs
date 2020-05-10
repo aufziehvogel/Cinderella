@@ -17,9 +17,7 @@ pub fn generate_status_icon(project: &str, branch: &str, status: BuildStatus, di
     // ignore the AlreadyExists error
     // other errors are also not important, because
     // we recognize them once the file cannot be written
-    if let Err(msg) = fs::create_dir(path.clone()) {
-        return Err(format!("{}", msg));
-    }
+    let _ = fs::create_dir(path.clone());
 
     path.push(format!("{}.png", branch));
 
