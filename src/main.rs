@@ -3,6 +3,7 @@ use std::path::Path;
 use std::process;
 
 use rpassword;
+use env_logger;
 use getopts::Options;
 use cinderella::ExecutionConfig;
 
@@ -16,6 +17,8 @@ fn print_usage_command(program: &str, argline: &str, opts: Options) {
 }
 
 fn main() {
+    env_logger::init();
+
     const NAME: &'static str = env!("CARGO_PKG_NAME");
     const VERSION: &'static str = env!("CARGO_PKG_VERSION");
     println!("{} v{}", NAME, VERSION);

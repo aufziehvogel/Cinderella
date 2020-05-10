@@ -2,6 +2,8 @@ use std::path::PathBuf;
 use std::io::prelude::Write;
 use std::fs::{self, File};
 
+use log::{debug, info};
+
 pub enum BuildStatus {
     Success,
     Error(String),
@@ -12,17 +14,19 @@ static ICON_ERROR: &'static [u8] = include_bytes!("../assets/icon_build_error.pn
 
 pub fn generate_status_icon(project: &str, branch: &str, status: BuildStatus, dir: &PathBuf) -> Result<(), String> {
     let mut path = dir.clone();
+    debug!("Creating diretory {}", path.to_string_lossy());
     path.push(project);
 
     // ignore the AlreadyExists error
     // other errors are also not important, because
     // we recognize them once the file cannot be written
-    let _ = fs::create_dir(path.clone());
+    let _ = fs::create_dir(path.as_path());
 
     path.push(format!("{}.png", branch));
+    info!("Writing badge to file: {}", path.to_string_lossy());
 
     // TODO: Error handling
-    let mut buffer = File::create(path.clone()).unwrap();
+    let mut buffer = File::create(path.as_path()).unwrap();
     let result = match status {
         BuildStatus::Success => buffer.write(ICON_SUCCESS),
         BuildStatus::Error(_) => buffer.write(ICON_ERROR),
