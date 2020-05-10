@@ -1,5 +1,6 @@
 use std::fs;
 use std::path::PathBuf;
+use std::vec::Vec;
 
 use serde::Deserialize;
 use toml;
@@ -61,7 +62,18 @@ impl ExecutionConfig {
     // TODO: This approach only works for URLs, not for local paths.
     // TODO: Move the name() function to the CodeSource
     pub fn name(&self) -> String {
-        self.repo_url.split('/').last().unwrap().to_string()
+        let components: Vec<&str> = self.repo_url.split('/').collect();
+
+        // TODO: Make more Rusty
+        // TODO: Always use the canonical path for getting project name? e.g.
+        // when user defines "." as path, still use the folder name
+        if components.last().is_some() && components.last().unwrap().to_string() != "" {
+            return components.last().unwrap().to_string();
+        } else if components.len() >= 2 {
+            return components[components.len() - 2].to_string();
+        } else {
+            return "".to_string();
+        }
     }
 
     pub fn cinderella_file(&self, folder: &PathBuf) -> PathBuf {
@@ -90,6 +102,27 @@ mod tests {
     use super::*;
     use std::io::Write;
     use tempfile::NamedTempFile;
+
+    #[test]
+    fn test_extract_project_name_from_path() {
+        let config = ExecutionConfig {
+            repo_url: "/path/to/repo".to_string(),
+            branch: Some("master".to_string()),
+            tag: None,
+            cinderella_filepath: None,
+        };
+        assert_eq!(config.name(), "repo");
+
+        // even if the path ends with a slash, we should extract the right
+        // project name
+        let config = ExecutionConfig {
+            repo_url: "/path/to/repo.git/".to_string(),
+            branch: Some("master".to_string()),
+            tag: None,
+            cinderella_filepath: None,
+        };
+        assert_eq!(config.name(), "repo.git");
+    }
 
     #[test]
     fn test_load_valid_config() {
