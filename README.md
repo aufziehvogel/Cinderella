@@ -243,6 +243,10 @@ Open Points
 
 This is a list of open points that are subject to implementation:
 
+- use virtual machines to execute unit tests, e.g.
+  [using qemu](https://stackoverflow.com/questions/3146013/qemu-guest-automation)
+  (a more high level abstraction like libvirt or vagrant would probably be
+  simpler, but I'd prefer low-level)
 - add more system tests
 - improve stability and error messages (sometimes I receive a rust crash
   due to a failed expect/unwrap)
